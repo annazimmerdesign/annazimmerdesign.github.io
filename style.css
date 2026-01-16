@@ -196,6 +196,7 @@ nav {
 @media (max-width: 1080px) {
     body {
         padding: 20px;
+        background-color: --cream;
     }
 
     .folder-container {

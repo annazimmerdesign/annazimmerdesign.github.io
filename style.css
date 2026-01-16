@@ -98,7 +98,7 @@ nav {
     background-image: url('assets/images/folder-texture.jpg');
     background-size: cover;
     background-blend-mode: multiply;
-    box-shadow: 5px 5px 10px rgba(72, 33, 13, 0.235);
+    box-shadow: 5px 5px 10px --background;
 }
 
 /* Tab and folder colors */
@@ -153,7 +153,7 @@ nav {
     background-image: url('assets/images/line-paper.jpeg');
     background-size: cover;
     background-blend-mode: multiply;
-    box-shadow: 5px 0 15px rgba(72, 33, 13, 0.235);
+    box-shadow: 5px 0 15px --background;
 }
 
 .folder-content h1 {
@@ -193,65 +193,81 @@ nav {
 
 
 
-@media (max-width: 1080px) {
+@media (max-width: 768px) {
     body {
-        padding: 20px;
-        background-color: --cream;
+        padding: 5px !important;
     }
 
     .folder-container {
-        width: 100%;
+        width: 100% !important;
     }
 
     nav {
-        padding-left: 10px;
-        gap: 1px;
+        padding-left: 40px !important;
+        gap: 2px !important;
+        flex-wrap: wrap !important;
     }
 
     .tab {
-        font-size: 10px;
-        padding: 8px 10px;
+        font-size: 10px !important;
+        padding: 6px 8px !important;
+        border-radius: 8px 8px 0 0 !important;
         white-space: nowrap;
+        flex: 1 1 auto;
+        text-align: center;
     }
 
     .tab::before,
     .tab::after {
-        display: none;
+        display: none !important;
     }
 
     .folder-content {
-        width: 80%;
-        max-width: 80%;
-        padding: 40px 20px;
-        top: 90px;
-        left: 50%;
-        transform: translateX(-50%);
-        min-height: 70vh;
+        width: 92% !important;
+        max-width: 92% !important;
+        padding: 25px 15px !important;
+        top: 95px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        max-height: 70vh !important;
+        overflow-y: auto !important;
     }
 
     .folder-content h1 {
-        font-size: 12px;
-        margin-bottom: 20px;
+        font-size: 24px !important;
+        margin-bottom: 15px !important;
     }
 
     .folder-content h2 {
-        font-size: 12px;
+        font-size: 18px !important;
     }
 
     .folder-content p {
-        font-size: 12px;
-        line-height: 1.6;
+        font-size: 14px !important;
+        line-height: 1.6 !important;
     }
 
     .about-text img {
-        float: none;
-        width: 80%;
-        max-width: 300px;
-        margin: 20px auto;
-        display: block;
+        float: none !important;
+        width: 70% !important;
+        max-width: 250px !important;
+        margin: 20px auto !important;
+        display: block !important;
     }
 
-    .tab-folder {
-        height: 75vh;
-    }
+   .tab-folder {
+    position: absolute;
+    top: 145%;
+    left: 0;
+    width: 100%;
+    height: 90vh;
+    border-radius: 12px 12px 4px 4px;  /* changed from 24px to 12px */
+    transform: translateY(6px);
+    transition: transform 0.15s;
+    z-index: 1;
+    background-image: url('assets/images/folder-texture.jpg');
+    background-size: cover;
+    background-blend-mode: multiply;
+    box-shadow: 5px 5px 10px --background;
+}
 }

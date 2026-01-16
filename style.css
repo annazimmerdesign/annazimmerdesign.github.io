@@ -1,0 +1,191 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --cream: #e8dcc8;
+    --blue: #4596d0;
+    --green: #5dc346;
+    --red: #e15452;
+    --tan: #6e5731;
+    --paper: #f1eadc;
+    --text-dark: #4a3c2a;
+    --text-medium: #5a4a3a;
+    --background: #1c201e;
+}
+
+body {
+    background-color: --background;
+    background-image: url('assets/images/paper-texture-dark.jpg');
+    background-size: 25%;
+    font-family: "Courier New", monospace;
+    padding: 40px;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+}
+
+.folder-container {
+    position: relative;
+    width: 1800px;
+}
+
+nav {
+    display: flex;
+    gap: 4px;
+    padding-left: 100px;
+    position: relative;
+}
+
+.tab-wrapper {
+    position: static;
+}
+
+.tab {
+    border: none;
+    padding: 12px 28px;
+    border-radius: 20px 20px 0 0;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 30px;
+    color: #4a3c2a;
+    position: relative;
+    top: 10px;
+    transition: top 0.15s;
+    z-index: 20;
+    text-decoration: none;
+    background-image: url('assets/images/folder-texture.jpg');
+    background-size: 500%;
+    background-position: center;
+    background-blend-mode: multiply;
+}
+
+.tab::before,
+.tab::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    width: 20px;
+    height: 20px;
+    background-color: inherit;
+    background-image: url('assets/images/folder-texture.jpg');
+    background-size: 300%;
+    background-blend-mode: multiply;
+}
+
+/* .tab::before {
+    left: -20px;
+    clip-path: path('M 20 0 Q 20 20, 0 20 L 20 20 Z');
+}
+
+.tab::after {
+    right: -20px;
+    clip-path: path('M 0 0 Q 0 20, 20 20 L 0 20 Z');
+} */
+
+.tab-folder {
+    position: absolute;
+    top: 145%;
+    left: 0;
+    width: 100%;
+    height: 90vh;
+    border-radius: 24px 24px 4px 4px;
+    transform: translateY(6px);
+    transition: transform 0.15s;
+    z-index: 1;
+    background-image: url('assets/images/folder-texture.jpg');
+    background-size: cover;
+    background-blend-mode: multiply;
+    box-shadow: 5px 5px 10px rgba(72, 33, 13, 0.235);
+}
+
+/* Tab and folder colors */
+.tab-wrapper:first-child .tab,
+.tab-wrapper:first-child .tab-folder {
+    background-color: #e8dcc8;
+}
+
+.tab-wrapper:nth-child(2) .tab,
+.tab-wrapper:nth-child(2) .tab-folder {
+    background-color: var(--green);
+}
+
+.tab-wrapper:nth-child(3) .tab,
+.tab-wrapper:nth-child(3) .tab-folder {
+    background-color: var(--blue);
+}
+
+.tab-wrapper:nth-child(4) .tab,
+.tab-wrapper:nth-child(4) .tab-folder {
+    background-color: var(--red);
+}
+
+.tab:hover {
+    top: -8px;
+}
+
+.tab:hover + .tab-folder {
+    transform: translateY(-14px);
+}
+
+/* Active state - tab rises and folder comes to front */
+.tab.active {
+    z-index: 25;
+}
+
+.tab.active + .tab-folder {
+    z-index: 25;
+}
+
+.folder-content {
+    background-color: #f1eadc;
+    width: 80%;
+    max-width: 800px;
+    height: 75vh;
+    top: 150px;
+    padding: 60px;
+    position: absolute;
+    left: 30%;
+    transform: translateX(-45%);
+    z-index: 99;
+    background-image: url('assets/images/line-paper.jpeg');
+    background-size: cover;
+    background-blend-mode: multiply;
+    box-shadow: 5px 0 15px rgba(72, 33, 13, 0.235);
+}
+
+.folder-content h1 {
+    color: #4a3c2a;
+    margin-top: 40px;
+    margin-bottom: 20px;
+    margin-left: 65px;
+}
+.folder-content h2 {
+    color: #4a3c2a;
+    margin-top: 20px;
+    margin-left: 65px;
+}
+
+.folder-content p {
+    color: #5a4a3a;
+    line-height: 1.5;
+    margin-left: 65px;
+}
+
+.about-text img {
+    float: right;
+    width: 450px;
+    height: auto;
+    margin-left: 100px;
+    margin-right: -540px;  /* Push it further right */
+    margin-top: -80px;    /* Pull it up */
+    margin-bottom: 100px;
+    filter: drop-shadow(3px 3px 8px rgba(72, 33, 13, 0.4));
+    transition: filter 0.3s ease;
+}
+
+.about-text img:hover {
+    filter: drop-shadow(5px 5px 10px rgba(72, 33, 13, 0.6));
+}

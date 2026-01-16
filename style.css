@@ -92,7 +92,7 @@ nav {
     top: 145%;
     left: 0;
     width: 100%;
-    height: 90vh;
+    height: 200vh;
     border-radius: 24px 24px 4px 4px;
     transform: translateY(6px);
     transition: transform 0.15s;
@@ -145,7 +145,7 @@ nav {
     background-color: #f1eadc;
     width: 80%;
     max-width: 800px;
-    height: 75vh;
+    height: auto; 
     top: 150px;
     padding: 60px;
     position: absolute;
@@ -193,10 +193,184 @@ nav {
 }
 
 
+/* Home Page Styles */
+.home-content {
+    padding: 60px 80px;
+}
+
+.home-intro {
+    margin-bottom: 60px;
+}
+
+.home-intro h1 {
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+.home-intro p {
+    font-size: 20px;
+    line-height: 1.5;
+    margin-left: 60px;
+}
+
+.featured-home h2 {
+    font-size: 32px;
+    margin-top: 10%;
+    margin-bottom: 40px;
+    margin-left: 60px;
+
+}
+
+.home-feature-card {
+    margin-top: 25px;
+    margin-bottom: 50px;
+    margin-left: 60px;
+
+}
+
+.feature-link {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+    transition: transform 0.2s ease;
+}
+
+.feature-link:hover {
+    transform: translateY(-2px);
+}
+
+.feature-media {
+    flex: 0 0 350px;  /* container width */
+    order: 2;
+    margin-right: -400px;
+    position: relative;
+}
+
+.feature-image {
+    width: 100%;  /* changed from 50% */
+    height: 220px;  /* reasonable size */
+    object-fit: cover;
+    box-shadow: 3px 3px 10px rgba(72, 33, 13, 0.3);
+}
+
+.feature-media iframe {
+    width: 100%;  /* changed from 50% */
+    height: 220px;  /* changed from 100px */
+    box-shadow: 3px 3px 10px rgba(72, 33, 13, 0.3);
+}
+
+.tape-overlay {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%) rotate(5deg); 
+    width: 120px;
+    height: auto;
+    pointer-events: none;
+    z-index: 10;
+}
+
+
+.feature-info {
+    flex: 1;
+    order: 1;
+}
+
+.feature-info h3 {
+    font-size: 28px;
+    margin-bottom: 15px;
+    color: #4a3c2a;
+}
+
+.feature-info p {
+    font-size: 20px;
+    line-height: 1.5;
+    margin-bottom: 15px;
+    margin-left: 0;
+}
+
+.view-more {
+    color: #4a3c2a;
+    font-weight: bold;
+    transition: color 0.2s;
+}
+
+.feature-link:hover .view-more {
+    color: var(--blue);
+}
+
+.home-cta {
+    margin-top: 60px;
+    text-align: center;
+}
+
+.projects-link {
+    display: inline-block;
+    padding: 15px 40px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
+    color: #4a3c2a;
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+.projects-link:hover {
+    background: rgba(255, 255, 255, 0.8);
+    transform: translateY(-2px);
+    box-shadow: 3px 3px 10px rgba(72, 33, 13, 0.3);
+}
+
+/* Mobile Responsive for Home */
+@media (max-width: 768px) {
+    .home-content {
+        padding: 30px 20px;
+    }
+
+    .home-intro h1 {
+        font-size: 32px;
+    }
+
+    .home-intro p {
+        font-size: 16px;
+    }
+
+    .featured-home h2 {
+        font-size: 24px;
+    }
+
+    .feature-link {
+        flex-direction: column;
+    }
+
+    .feature-media {
+        order: 1;
+        flex: 0 0 auto;
+        width: 100%;
+        margin-right: 0;
+    }
+
+    .feature-info {
+        order: 2;
+    }
+
+    .feature-info h3 {
+        font-size: 22px;
+    }
+
+    .feature-image {
+        height: 200px;
+    }
+}
+
+
 /* Projects Page - Two Paper Sections */
 .projects-content {
-    padding: 40px 60px 80px;
-    width: 80%;
+    padding: 40px 60px 40px;
+    width: 44%;
     max-width: 800px;
 }
 
@@ -210,12 +384,13 @@ nav {
 .projects-content.coding-paper {
     top: 200px;
     left: 70%;
+    bottom: -125%;
 }
 
 .projects-content h1 {
-    border-bottom: 2px solid rgba(74, 60, 42, 0.2);
     padding-bottom: 20px;
     margin-bottom: 40px;
+    margin-top: 55px;
     font-size: 36px;
 }
 
@@ -223,6 +398,8 @@ nav {
 .project-card {
     margin-bottom: 30px;
     transition: transform 0.2s ease;
+    margin-left: -20px;
+    width: 110%;
 }
 
 .project-card.featured {
@@ -231,7 +408,6 @@ nav {
     align-items: flex-start;
     padding: 20px;
     background: rgba(255, 255, 255, 0.3);
-    border-radius: 8px;
 }
 
 .project-card.featured:hover {
@@ -244,9 +420,8 @@ nav {
 
 .project-card.featured .project-image img {
     width: 100%;
-    height: 180px;
+    height: 200px;
     object-fit: cover;
-    border-radius: 4px;
     box-shadow: 2px 2px 8px rgba(72, 33, 13, 0.2);
 }
 
@@ -262,8 +437,9 @@ nav {
 
 .project-card.featured p {
     margin-bottom: 15px;
-    line-height: 1.6;
+    line-height: 1.5;
     font-size: 16px;
+    margin-left: 0;
 }
 
 .project-link {
@@ -277,19 +453,24 @@ nav {
     color: var(--blue);
 }
 
-/* Grid for Creative Coding Projects */
+/* Grid for Creative Coding Projects - Masonry Style */
 .projects-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 25px;
+    margin: 0px;
+    column-count: 2;
+    column-gap: 20px;
 }
 
 .project-card.small {
     background: rgba(255, 255, 255, 0.3);
-    border-radius: 8px;
     overflow: hidden;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: inline-block;
+    width: 100%;
+    margin-bottom: 10px;
+    break-inside: avoid;
 }
 
 .project-card.small:hover {
@@ -297,10 +478,20 @@ nav {
     box-shadow: 4px 4px 12px rgba(72, 33, 13, 0.3);
 }
 
+.project-card.small .project-image {
+    width: 100%;
+}
+
 .project-card.small .project-image img {
     width: 100%;
     height: 150px;
     object-fit: cover;
+    display: block;
+}
+
+.projects-content.coding-paper h1 {
+    margin-top: 100px; 
+    margin-left: 110px;
 }
 
 .project-card.small .project-info {
@@ -345,12 +536,10 @@ nav {
     }
 
     .projects-grid {
-        grid-template-columns: 1fr;
+        column-count: 1;
         gap: 20px;
     }
 }
-
-
 
 
 @media (max-width: 768px) {
@@ -404,7 +593,7 @@ nav {
 
     .folder-content p {
         font-size: 14px !important;
-        line-height: 1.6 !important;
+        line-height: 1.5 !important;
     }
 
     .about-text img {

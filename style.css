@@ -190,9 +190,12 @@ nav {
     filter: drop-shadow(5px 5px 10px rgba(72, 33, 13, 0.6));
 }
 
+
+
+
 @media (max-width: 768px) {
     body {
-        padding: 10px;
+        padding: 5px;
     }
 
     .folder-container {
@@ -200,13 +203,13 @@ nav {
     }
 
     nav {
-        padding-left: 10px;
-        gap: 2px;
+        padding-left: 5px;
+        gap: 1px;
     }
 
     .tab {
-        font-size: 16px;
-        padding: 10px 16px;
+        font-size: 12px;
+        padding: 8px 10px;
         white-space: nowrap;
     }
 

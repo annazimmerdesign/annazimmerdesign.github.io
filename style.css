@@ -189,3 +189,55 @@ nav {
 .about-text img:hover {
     filter: drop-shadow(5px 5px 10px rgba(72, 33, 13, 0.6));
 }
+
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    .folder-container {
+        width: 100%;
+    }
+
+    nav {
+        padding-left: 10px;
+        gap: 2px;
+        overflow-x: auto;
+    }
+
+    .tab {
+        font-size: 14px;
+        padding: 8px 12px;
+        white-space: nowrap;
+    }
+
+    .tab::before,
+    .tab::after {
+        display: none;
+    }
+
+    .folder-content {
+        width: 95%;
+        padding: 20px;
+        top: 80px;
+        font-size: 14px;
+    }
+
+    .folder-content h1 {
+        font-size: 24px;
+    }
+
+    .folder-content h2 {
+        font-size: 18px;
+    }
+
+    .about-text img {
+        float: none;
+        width: 100%;
+        margin: 20px 0;
+    }
+
+    .tab-folder {
+        height: 80vh;
+    }
+}

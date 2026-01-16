@@ -193,9 +193,9 @@ nav {
 
 
 
-@media (max-width: 768px) {
+@media (max-width: 1080px) {
     body {
-        padding: 5px;
+        padding: 20px;
     }
 
     .folder-container {
@@ -203,12 +203,12 @@ nav {
     }
 
     nav {
-        padding-left: 5px;
+        padding-left: 10px;
         gap: 1px;
     }
 
     .tab {
-        font-size: 12px;
+        font-size: 10px;
         padding: 8px 10px;
         white-space: nowrap;
     }
@@ -219,9 +219,9 @@ nav {
     }
 
     .folder-content {
-        width: 90%;
-        max-width: 90%;
-        padding: 30px 20px;
+        width: 80%;
+        max-width: 80%;
+        padding: 40px 20px;
         top: 90px;
         left: 50%;
         transform: translateX(-50%);
@@ -229,16 +229,16 @@ nav {
     }
 
     .folder-content h1 {
-        font-size: 28px;
+        font-size: 12px;
         margin-bottom: 20px;
     }
 
     .folder-content h2 {
-        font-size: 20px;
+        font-size: 12px;
     }
 
     .folder-content p {
-        font-size: 16px;
+        font-size: 12px;
         line-height: 1.6;
     }
 

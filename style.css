@@ -193,6 +193,164 @@ nav {
 }
 
 
+/* Projects Page - Two Paper Sections */
+.projects-content {
+    padding: 40px 60px 80px;
+    width: 80%;
+    max-width: 800px;
+}
+
+/* First paper - Featured Work */
+.projects-content:first-of-type {
+    top: 140px;
+    left: 25%;
+}
+
+/* Second paper - Creative Coding */
+.projects-content.coding-paper {
+    top: 200px;
+    left: 70%;
+}
+
+.projects-content h1 {
+    border-bottom: 2px solid rgba(74, 60, 42, 0.2);
+    padding-bottom: 20px;
+    margin-bottom: 40px;
+    font-size: 36px;
+}
+
+/* Featured Projects - Larger Cards */
+.project-card {
+    margin-bottom: 30px;
+    transition: transform 0.2s ease;
+}
+
+.project-card.featured {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+}
+
+.project-card.featured:hover {
+    transform: translateY(-2px);
+}
+
+.project-card.featured .project-image {
+    flex: 0 0 250px;
+}
+
+.project-card.featured .project-image img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 4px;
+    box-shadow: 2px 2px 8px rgba(72, 33, 13, 0.2);
+}
+
+.project-card.featured .project-info {
+    flex: 1;
+}
+
+.project-card.featured h3 {
+    font-size: 24px;
+    margin-bottom: 15px;
+    color: #4a3c2a;
+}
+
+.project-card.featured p {
+    margin-bottom: 15px;
+    line-height: 1.6;
+    font-size: 16px;
+}
+
+.project-link {
+    color: #4a3c2a;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.2s;
+}
+
+.project-link:hover {
+    color: var(--blue);
+}
+
+/* Grid for Creative Coding Projects */
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+}
+
+.project-card.small {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.project-card.small:hover {
+    transform: translateY(-4px);
+    box-shadow: 4px 4px 12px rgba(72, 33, 13, 0.3);
+}
+
+.project-card.small .project-image img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+}
+
+.project-card.small .project-info {
+    padding: 15px;
+}
+
+.project-card.small h3 {
+    font-size: 16px;
+    margin-bottom: 8px;
+    color: #4a3c2a;
+}
+
+.project-card.small p {
+    font-size: 13px;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .projects-content {
+        padding: 30px 20px;
+        width: 92%;
+        position: static;
+        margin: 20px auto;
+        left: auto;
+        transform: none;
+    }
+
+    .projects-content.coding-paper {
+        top: auto;
+        left: auto;
+    }
+
+    .project-card.featured {
+        flex-direction: column;
+    }
+
+    .project-card.featured .project-image {
+        flex: 0 0 auto;
+        width: 100%;
+    }
+
+    .projects-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}
+
+
 
 
 @media (max-width: 768px) {

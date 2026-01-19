@@ -64,7 +64,7 @@ nav {
     background-blend-mode: multiply;
 }
 
-.tab::before,
+/* .tab::before,
 .tab::after {
     content: '';
     position: absolute;
@@ -75,7 +75,7 @@ nav {
     background-image: url('assets/images/folder-texture.jpg');
     background-size: 300%;
     background-blend-mode: multiply;
-}
+} */
 
 /* .tab::before {
     left: -20px;

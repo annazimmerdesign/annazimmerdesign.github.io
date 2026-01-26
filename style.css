@@ -943,13 +943,14 @@ nav {
     padding: 60px 50px 80px 50px;
     background-color: #5c4033;
     background-image: url('assets/images/leather.png');
-    background-size: cover;
+    background-size: auto 50%;
+    background-repeat: repeat;
     background-position: center;
     border-radius: 8px;
     box-shadow: 
         0 10px 30px rgba(0, 0, 0, 0.4),
-        inset 0 2px 4px rgba(255, 255, 255, 0.1),
-        inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+        inset 0 0 5px 2px rgba(0, 0, 0, 0.5),
+        inset 0 0 10px 4px rgba(0, 0, 0, 0.3);
     position: relative;
 }
 

@@ -5,19 +5,188 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Midterm 5 in 5 - Journal - Anna Zimmer</title>
     <link rel="stylesheet" href="../style.css" />
-    
+    <style>
+      .entry-page-container {
+        width: 90%;
+        max-width: 1000px;
+        margin: 0 auto 80px auto;
+      }
+
+      .entry-leather-bg {
+        width: 100%;
+        padding: 60px 70px 80px 70px;
+        background-color: #5c4033;
+        background-image: url("../assets/images/leather.png");
+        background-size: 100% auto;
+        background-repeat: repeat-y;
+        background-position: center;
+        border-radius: 8px;
+        box-shadow:
+          0 10px 30px rgba(0, 0, 0, 0.4),
+          inset 0 0 5px 2px rgba(0, 0, 0, 0.5),
+          inset 0 0 10px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .entry-full-scrap {
+        background-color: var(--paper);
+        background-image: url("../assets/images/line-paper.jpeg");
+        background-size: 100% auto;
+        background-repeat: repeat-y;
+        background-blend-mode: multiply;
+        padding: 60px 70px 70px 70px;
+        position: relative;
+        box-shadow:
+          4px 4px 12px rgba(0, 0, 0, 0.3),
+          0 0 0 1px rgba(0, 0, 0, 0.05);
+      }
+
+      .entry-full-scrap .scrap-tape {
+        position: absolute;
+        top: -15px;
+        left: 50%;
+        transform: translateX(-50%) rotate(3deg);
+        width: 100px;
+        height: auto;
+        pointer-events: none;
+        z-index: 10;
+      }
+
+      .entry-full-content {
+        margin-top: 20px;
+        margin-left: 4em;
+      }
+
+      .entry-full-content .entry-date {
+        font-size: 13px;
+        color: var(--tan);
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+      }
+
+      .entry-full-content .entry-title {
+        font-size: 30px;
+        color: var(--text-dark);
+        margin-bottom: 25px;
+        font-family: "Courier New", monospace;
+      }
+
+      .entry-body p {
+        font-size: 16px;
+        line-height: 1.6;
+        color: var(--text-medium);
+        margin-bottom: 20px;
+        font-family: "Courier New", monospace;
+      }
+
+      .entry-body h3 {
+        font-size: 20px;
+        color: var(--text-dark);
+        margin-top: 35px;
+        margin-bottom: 16px;
+        font-family: "Courier New", monospace;
+      }
+
+      /* Image groups: centered row of small images */
+      .img-group {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+        margin: 16px 0 24px 0;
+      }
+
+      .img-group img {
+        height: 220px;
+        width: auto;
+        max-width: 100%;
+        object-fit: cover;
+        box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+        display: block;
+      }
+
+      /* 6-image grid: 3 columns */
+      .img-group.grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+
+      .img-group.grid-3 img {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+      }
+
+      /* iframe centered and capped */
+      .entry-body iframe {
+        display: block;
+        width: 100%;
+        max-width: 500px;
+        height: 280px;
+        margin: 16px auto 24px auto;
+        box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      .entry-divider {
+        border: none;
+        border-top: 1px dashed var(--tan);
+        opacity: 0.4;
+        margin: 30px 0;
+      }
+
+      .entry-footer {
+        margin-top: 50px;
+        padding-top: 20px;
+        border-top: 1px dashed var(--tan);
+        opacity: 0.7;
+      }
+
+      .entry-footer a {
+        color: var(--text-dark);
+        text-decoration: none;
+        font-size: 14px;
+        font-family: "Courier New", monospace;
+        transition: color 0.2s;
+      }
+
+      .entry-footer a:hover {
+        color: var(--blue);
+      }
+
+      @media (max-width: 768px) {
+        .entry-leather-bg {
+          padding: 40px 20px 50px 20px;
+        }
+        .entry-full-scrap {
+          padding: 40px 25px 50px 25px;
+        }
+        .entry-full-content {
+          margin-left: 0;
+        }
+        .entry-full-content .entry-title {
+          font-size: 24px;
+        }
+        .img-group img {
+          height: 160px;
+        }
+        .img-group.grid-3 {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .img-group.grid-3 img {
+          height: 140px;
+        }
+      }
     </style>
   </head>
   <body>
     <div class="folder-container">
-
       <div class="journal-nav">
         <a href="../journal.html" class="back-button">← Back to Journal</a>
       </div>
 
       <div class="entry-page-container">
         <div class="entry-leather-bg">
-
           <article class="entry-full-scrap">
             <img src="../assets/images/tape.png" alt="" class="scrap-tape" />
 
@@ -26,37 +195,45 @@
               <h1 class="entry-title">Midterm 5 in 5</h1>
 
               <div class="entry-body">
-
-                <!-- <p> for paragraphs
-                     <h3> for section headers (e.g. piece titles)
-                     <img src="../assets/images/your-image.jpg" alt="..." />
-                     <div class="polaroid"> for polaroid-style images
-                     <div class="entry-image-grid"> for side-by-side shots
-                    <hr class="entry-divider" /> for section breaks -->
-
                 <p>
-                  For my 5 in 5, I decided to explore themes of memory, image, and
-                  the politics of reproducibility in archives. My work included
-                  a Markov text generation, a TouchDesigner feedback loop sketch, a
-                  handwritten journal entry, a suspension of photocopied images,
-                  and a passport mini-zine.
+                  For my 5 in 5, I decided to explore themes of memory, image,
+                  and the politics of reproducibility in archives. My work
+                  included a Markov text generation, a TouchDesigner feedback
+                  loop sketch, a handwritten journal entry, a suspension of
+                  photocopied images, and a passport mini-zine.
                 </p>
 
                 <hr class="entry-divider" />
 
                 <h3>1. Markov Text Generation</h3>
-                <img src="../assets/images/markov1.jpg"  />
-                <img src="../assets/images/markov2.png"  />
+                <div class="img-group">
+                  <img src="../assets/images/markov1.jpg" alt="Markov output" />
+                  <img src="../assets/images/markov2.png" alt="Markov text" />
+                </div>
                 <p>
                   <!-- Describe this piece -->
                 </p>
-                <!-- <img src="../assets/images/markov-output.jpg" alt="Markov text output" /> -->
 
                 <hr class="entry-divider" />
 
                 <h3>2. TouchDesigner Feedback Loop</h3>
-                <iframe width="560" height="315" src="https://www.youtube.com/embed/6sJWPvQpcDs?si=tlv5VOdv-_b9A-jQ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-                
+                <iframe
+                  src="https://www.youtube.com/embed/6sJWPvQpcDs?si=tlv5VOdv-_b9A-jQ"
+                  title="ROOT - TouchDesigner Exercise"
+                  frameborder="0"
+                  allow="
+                    accelerometer;
+                    autoplay;
+                    clipboard-write;
+                    encrypted-media;
+                    gyroscope;
+                    picture-in-picture;
+                    web-share;
+                  "
+                  referrerpolicy="strict-origin-when-cross-origin"
+                  allowfullscreen
+                >
+                </iframe>
                 <p>
                   <!-- Describe this piece -->
                 </p>
@@ -64,8 +241,16 @@
                 <hr class="entry-divider" />
 
                 <h3>3. Handwritten Journal Entry</h3>
-                <img src="../assets/images/handwritten1.jpg"  />
-                <img src="../assets/images/handwritten2.jpg"  />
+                <div class="img-group">
+                  <img
+                    src="../assets/images/handwritten1.jpg"
+                    alt="Handwritten journal entry"
+                  />
+                  <img
+                    src="../assets/images/handwritten2.jpg"
+                    alt="Handwritten journal entry"
+                  />
+                </div>
                 <p>
                   <!-- Describe this piece -->
                 </p>
@@ -73,12 +258,14 @@
                 <hr class="entry-divider" />
 
                 <h3>4. Photocopied Image Suspension</h3>
-                <img src="../assets/images/photocopy1.jpg"  />
-                <img src="../assets/images/photocopy2.jpg"  />
-                <img src="../assets/images/photocopy3.jpg"  />
-                <img src="../assets/images/photocopy4.jpg"  />
-                <img src="../assets/images/photocopy5.jpg"  />
-                <img src="../assets/images/photocopy6.jpg"  />
+                <div class="img-group grid-3">
+                  <img src="../assets/images/photocopy1.jpg" alt="Photocopy" />
+                  <img src="../assets/images/photocopy2.jpg" alt="Photocopy" />
+                  <img src="../assets/images/photocopy3.jpg" alt="Photocopy" />
+                  <img src="../assets/images/photocopy4.jpg" alt="Photocopy" />
+                  <img src="../assets/images/photocopy5.jpg" alt="Photocopy" />
+                  <img src="../assets/images/photocopy6.jpg" alt="Photocopy" />
+                </div>
                 <p>
                   <!-- Describe this piece -->
                 </p>
@@ -86,28 +273,43 @@
                 <hr class="entry-divider" />
 
                 <h3>5. Passport Mini-Zine</h3>
-                <img src="../assets/images/passport3.jpg"  />
-                <img src="../assets/images/passport1.jpg"  />
-                <img src="../assets/images/passport2.jpg"  />
+                <div class="img-group">
+                  <img
+                    src="../assets/images/passport3.jpg"
+                    alt="Passport zine"
+                  />
+                  <img
+                    src="../assets/images/passport1.jpg"
+                    alt="Passport zine"
+                  />
+                  <img
+                    src="../assets/images/passport2.jpg"
+                    alt="Passport zine"
+                  />
+                  <img
+                    src="../assets/images/passport4.png"
+                    alt="Passport zine"
+                  />
+                  <!-- new one -->
+                </div>
                 <p>
                   <!-- Describe this piece -->
                 </p>
-
-                <!-- end -->
-
-              </div><!-- /entry-body -->
+              </div>
+              <!-- /entry-body -->
 
               <div class="entry-footer">
                 <a href="../journal.html">← Back to Journal</a>
               </div>
-
-            </div><!-- /entry-full-content -->
+            </div>
+            <!-- /entry-full-content -->
           </article>
-
-        </div><!-- /entry-leather-bg -->
-      </div><!-- /entry-page-container -->
-
-    </div><!-- /folder-container -->
+        </div>
+        <!-- /entry-leather-bg -->
+      </div>
+      <!-- /entry-page-container -->
+    </div>
+    <!-- /folder-container -->
 
     <script src="../script.js"></script>
   </body>

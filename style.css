@@ -1280,3 +1280,189 @@ nav {
         top: -10px;
     }
 }
+
+
+      /* ============================
+         Entry Page Specific Styles
+         ============================ */
+
+      .entry-page-container {
+        width: 90%;
+        max-width: 1000px;
+        margin: 0 auto 80px auto;
+      }
+
+      .entry-leather-bg {
+        width: 100%;
+        padding: 60px 70px 80px 70px;
+        background-color: #5c4033;
+        background-image: url('../assets/images/leather.png');
+        background-size: auto 50%;
+        background-repeat: repeat;
+        background-position: center;
+        border-radius: 8px;
+        box-shadow:
+          0 10px 30px rgba(0, 0, 0, 0.4),
+          inset 0 0 5px 2px rgba(0, 0, 0, 0.5),
+          inset 0 0 10px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      /* The single big scrap for the full entry */
+      .entry-full-scrap {
+        background-color: var(--paper);
+        background-image: url('../assets/images/line-paper.jpeg');
+        background-size: cover;
+        background-blend-mode: multiply;
+        padding: 60px 70px 70px 70px;
+        position: relative;
+        box-shadow:
+          4px 4px 12px rgba(0, 0, 0, 0.3),
+          0 0 0 1px rgba(0, 0, 0, 0.05);
+      }
+
+      .entry-full-scrap .scrap-tape {
+        position: absolute;
+        top: -15px;
+        left: 50%;
+        transform: translateX(-50%) rotate(3deg);
+        width: 100px;
+        height: auto;
+        pointer-events: none;
+        z-index: 10;
+      }
+
+      .entry-full-content {
+        margin-top: 20px;
+        margin-left: 4em;
+      }
+
+      .entry-full-content .entry-date {
+        font-size: 13px;
+        color: var(--tan);
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+      }
+
+      .entry-full-content .entry-title {
+        font-size: 30px;
+        color: var(--text-dark);
+        margin-bottom: 25px;
+        font-family: "Courier New", monospace;
+      }
+
+      /* Body text */
+      .entry-body p {
+        font-size: 16px;
+        line-height: 1.6;
+        color: var(--text-medium);
+        margin-bottom: 20px;
+        font-family: "Courier New", monospace;
+      }
+
+      .entry-body h3 {
+        font-size: 20px;
+        color: var(--text-dark);
+        margin-top: 35px;
+        margin-bottom: 12px;
+        font-family: "Courier New", monospace;
+      }
+
+      /* Images inside the entry */
+      .entry-body img {
+        max-width: 100%;
+        height: auto;
+        margin: 25px 0;
+        box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Polaroid-style image */
+      .entry-body .polaroid {
+        background: white;
+        padding: 10px 10px 35px 10px;
+        box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.25);
+        transform: rotate(-1.5deg);
+        margin: 25px auto;
+        display: inline-block;
+        max-width: 300px;
+      }
+
+      .entry-body .polaroid img {
+        width: 100%;
+        margin: 0;
+        box-shadow: none;
+      }
+
+      .entry-body .polaroid .caption {
+        font-size: 12px;
+        color: var(--tan);
+        text-align: center;
+        margin-top: 8px;
+        font-style: italic;
+      }
+
+      /* Two-column image grid for process shots */
+      .entry-image-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin: 25px 0;
+      }
+
+      .entry-image-grid img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        margin: 0;
+      }
+
+      /* Divider */
+      .entry-divider {
+        border: none;
+        border-top: 1px dashed var(--tan);
+        opacity: 0.4;
+        margin: 30px 0;
+      }
+
+      /* Back-to-journal link at bottom */
+      .entry-footer {
+        margin-top: 50px;
+        padding-top: 20px;
+        border-top: 1px dashed var(--tan);
+        opacity: 0.7;
+      }
+
+      .entry-footer a {
+        color: var(--text-dark);
+        text-decoration: none;
+        font-size: 14px;
+        font-family: "Courier New", monospace;
+        transition: color 0.2s;
+      }
+
+      .entry-footer a:hover {
+        color: var(--blue);
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .entry-leather-bg {
+          padding: 40px 20px 50px 20px;
+        }
+
+        .entry-full-scrap {
+          padding: 40px 25px 50px 25px;
+        }
+
+        .entry-full-content {
+          margin-left: 0;
+        }
+
+        .entry-full-content .entry-title {
+          font-size: 24px;
+        }
+
+        .entry-image-grid {
+          grid-template-columns: 1fr;
+        }
+      }

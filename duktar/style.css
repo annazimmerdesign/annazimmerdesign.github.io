@@ -1,0 +1,42 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #0e0d0b;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: "Courier New", monospace;
+  color: #8a7f6e;
+  gap: 1rem;
+}
+
+#sketch-container canvas {
+  display: block;
+}
+
+#info {
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+#reset {
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #4a4540;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: inherit;
+}
+
+#reset:hover {
+  color: #8a7f6e;
+}

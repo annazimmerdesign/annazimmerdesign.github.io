@@ -8,10 +8,9 @@ const HEADERS = {
   'Prefer': 'return=minimal'
 };
 
-// damage map resolution — lower = faster, coarser damage
 const GRID_W = 96;
 const GRID_H = 96;
-const BRUSH_RADIUS = 4; // grid cells
+const BRUSH_RADIUS = 4;
 const DAMAGE_PER_PASS = 0.04;
 const MAX_DAMAGE = 1.0;
 
@@ -19,6 +18,7 @@ let damageMap = new Float32Array(GRID_W * GRID_H);
 let interactions = 0;
 let saveTimeout = null;
 let lastMouseGrid = { x: -1, y: -1 };
+const insideCanvases = new Set();
 
 // ---- Supabase ----
 
@@ -42,13 +42,12 @@ async function saveState() {
   });
 }
 
-// debounced save — waits 1.5s after last interaction before writing
 function scheduleSave() {
   if (saveTimeout) clearTimeout(saveTimeout);
   saveTimeout = setTimeout(saveState, 1500);
 }
 
-// ---- Damage map helpers ----
+// ---- Damage map ----
 
 function gridCoords(clientX, clientY) {
   const gx = Math.floor((clientX / window.innerWidth) * GRID_W);
@@ -72,57 +71,48 @@ function applyDamage(gx, gy) {
 }
 
 function getDamageAt(clientX, clientY) {
-  const { gx, gy } = gridCoords(clientX, clientY);
-  const gxc = Math.max(0, Math.min(GRID_W - 1, gx));
-  const gyc = Math.max(0, Math.min(GRID_H - 1, gy));
-  return damageMap[gyc * GRID_W + gxc];
+  const gx = Math.max(0, Math.min(GRID_W - 1, Math.floor((clientX / window.innerWidth) * GRID_W)));
+  const gy = Math.max(0, Math.min(GRID_H - 1, Math.floor((clientY / window.innerHeight) * GRID_H)));
+  return damageMap[gy * GRID_W + gx];
 }
 
-// ---- Canvas distortion ----
+// ---- Canvas distortion — compounds on current state ----
 
 function distortCanvas(canvas, damage) {
   const ctx = canvas.getContext('2d');
   if (!canvas._loaded) return;
+  if (damage < 0.01) return;
 
   const w = canvas.width;
   const h = canvas.height;
 
-  // redraw original
-  ctx.clearRect(0, 0, w, h);
-  ctx.drawImage(canvas._source, 0, 0, w, h);
-
-  if (damage < 0.01) return;
-
   const imageData = ctx.getImageData(0, 0, w, h);
   const data = imageData.data;
 
-  // pixel shift + noise based on damage level
   const shift = Math.floor(damage * 12);
   const noiseAmt = damage * 60;
 
   for (let i = 0; i < data.length; i += 4) {
     const noise = (Math.random() - 0.5) * noiseAmt;
-    data[i]     = Math.max(0, Math.min(255, data[i] + noise));
+    data[i]     = Math.max(0, Math.min(255, data[i]     + noise));
     data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + noise * 0.8));
     data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + noise * 0.6));
   }
 
-  // horizontal scan line displacement
   if (shift > 0) {
     for (let y = 0; y < h; y++) {
       if (Math.random() > damage * 0.4) continue;
       const s = Math.floor((Math.random() - 0.5) * shift * 2);
-      const row = new Uint8ClampedArray(data.buffer, y * w * 4, w * 4);
-      const shifted = new Uint8ClampedArray(w * 4);
+      const rowCopy = new Uint8ClampedArray(w * 4);
       for (let x = 0; x < w; x++) {
         const src = ((x - s + w) % w) * 4;
-        shifted[x * 4]     = row[src];
-        shifted[x * 4 + 1] = row[src + 1];
-        shifted[x * 4 + 2] = row[src + 2];
-        shifted[x * 4 + 3] = row[src + 3];
+        rowCopy[x * 4]     = data[y * w * 4 + src];
+        rowCopy[x * 4 + 1] = data[y * w * 4 + src + 1];
+        rowCopy[x * 4 + 2] = data[y * w * 4 + src + 2];
+        rowCopy[x * 4 + 3] = data[y * w * 4 + src + 3];
       }
       for (let x = 0; x < w * 4; x++) {
-        data[y * w * 4 + x] = shifted[x];
+        data[y * w * 4 + x] = rowCopy[x];
       }
     }
   }
@@ -140,14 +130,13 @@ function distortText(damage) {
       p.textContent = p._original;
       return;
     }
-
     const chars = p._original.split('');
+    const glitchChars = '░▒▓█▄▀■□▪▫∎∏∑∆∇∂∫≈≠≡±×÷';
     const corrupted = chars.map(c => {
-      if (c === ' ' || Math.random() > damage * 0.3) return c;
-      const glitchChars = '░▒▓█▄▀■□▪▫∎∏∑∆∇∂∫≈≠≡±×÷';
-      return Math.random() < damage * 0.15
-        ? glitchChars[Math.floor(Math.random() * glitchChars.length)]
-        : c;
+      if (c === ' ') return c;
+      if (Math.random() < damage * 0.15)
+        return glitchChars[Math.floor(Math.random() * glitchChars.length)];
+      return c;
     });
     p.textContent = corrupted.join('');
   });
@@ -165,35 +154,28 @@ function initCanvases() {
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     };
+    img.onerror = () => {
+      canvas._loaded = true;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#c0bbb2';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#888';
+      ctx.font = '11px Courier New';
+      ctx.fillText(src, 10, canvas.height / 2);
+    };
     img.src = src;
   });
 }
 
 // ---- Update display ----
 
-function updateDisplay(mouseX, mouseY) {
-  const canvases = document.querySelectorAll('.distort-canvas');
-
-  canvases.forEach(canvas => {
-    const rect = canvas.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-
-    // get damage at canvas center position
-    const damage = getDamageAt(centerX, centerY);
-    distortCanvas(canvas, damage);
-  });
-
-  // average damage for text
+function updateDisplay() {
   const avgDamage = damageMap.reduce((a, b) => a + b, 0) / damageMap.length;
-  distortText(avgDamage * 8); // amplified so text reacts faster
+  distortText(avgDamage * 8);
 
-  // update footer
   const integrity = Math.max(0, Math.round((1 - avgDamage * 8) * 100));
   document.getElementById('interaction-count').textContent = interactions;
   document.getElementById('integrity').textContent = integrity + '%';
-
-  // update mod date
   document.getElementById('mod-date').textContent = new Date().toISOString().split('T')[0];
 }
 
@@ -207,8 +189,25 @@ document.addEventListener('mousemove', (e) => {
     applyDamage(gx, gy);
     interactions++;
     scheduleSave();
-    updateDisplay(e.clientX, e.clientY);
+    updateDisplay();
   }
+
+  document.querySelectorAll('.distort-canvas').forEach(canvas => {
+    const rect = canvas.getBoundingClientRect();
+    const inside =
+      e.clientX >= rect.left && e.clientX <= rect.right &&
+      e.clientY >= rect.top  && e.clientY <= rect.bottom;
+
+    if (inside && !insideCanvases.has(canvas)) {
+      insideCanvases.add(canvas);
+      const damage = getDamageAt(e.clientX, e.clientY);
+      distortCanvas(canvas, Math.max(damage, 0.05));
+    }
+
+    if (!inside) {
+      insideCanvases.delete(canvas);
+    }
+  });
 });
 
 // ---- Boot ----
@@ -225,7 +224,7 @@ async function init() {
     }
   }
 
-  updateDisplay(0, 0);
+  updateDisplay();
 }
 
 init();

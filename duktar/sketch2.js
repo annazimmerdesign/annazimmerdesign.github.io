@@ -20,11 +20,14 @@ let saveTimeout = null;
 let lastMouseGrid = { x: -1, y: -1 };
 const insideCanvases = new Set();
 
+// map canvas index -> current base64 state
+const canvasStates = {};
+
 // ---- Supabase ----
 
 async function loadState() {
   const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/archive_state?id=eq.1&select=passes%2Cdamage_map`,
+    `${SUPABASE_URL}/rest/v1/archive_state?id=eq.1&select=passes%2Cdamage_map%2Ccanvas1%2Ccanvas2%2Ccanvas3`,
     { headers: HEADERS }
   );
   const data = await res.json();
@@ -32,13 +35,17 @@ async function loadState() {
 }
 
 async function saveState() {
+  const payload = {
+    passes: interactions,
+    damage_map: JSON.stringify(Array.from(damageMap)),
+    canvas1: canvasStates[0] || null,
+    canvas2: canvasStates[1] || null,
+    canvas3: canvasStates[2] || null,
+  };
   await fetch(`${SUPABASE_URL}/rest/v1/archive_state?id=eq.1`, {
     method: 'PATCH',
     headers: HEADERS,
-    body: JSON.stringify({
-      passes: interactions,
-      damage_map: JSON.stringify(Array.from(damageMap))
-    })
+    body: JSON.stringify(payload)
   });
 }
 
@@ -76,7 +83,7 @@ function getDamageAt(clientX, clientY) {
   return damageMap[gy * GRID_W + gx];
 }
 
-// ---- Canvas distortion — compounds on current state ----
+// ---- Canvas distortion ----
 
 function distortCanvas(canvas, damage) {
   const ctx = canvas.getContext('2d');
@@ -108,13 +115,18 @@ function distortCanvas(canvas, damage) {
   }
   octx.putImageData(imageData, 0, 0);
 
-  // re-encode as JPEG to get compression artifacts
   const quality = Math.max(0.02, 1 - passes * 0.08);
   const dataURL = offscreen.toDataURL('image/jpeg', quality);
+
   const img = new Image();
   img.onload = () => {
     ctx.clearRect(0, 0, w, h);
     ctx.drawImage(img, 0, 0, w, h);
+
+    // store state for persistence
+    const idx = canvas._index;
+    canvasStates[idx] = dataURL;
+    scheduleSave();
   };
   img.src = dataURL;
 }
@@ -143,26 +155,37 @@ function distortText(damage) {
 
 // ---- Init canvases ----
 
-function initCanvases() {
-  document.querySelectorAll('.distort-canvas').forEach(canvas => {
+function initCanvases(savedCanvases) {
+  document.querySelectorAll('.distort-canvas').forEach((canvas, i) => {
+    canvas._index = i;
     const src = canvas.dataset.src;
-    const img = new Image();
-    img.onload = () => {
-      canvas._source = img;
-      canvas._loaded = true;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    };
-    img.onerror = () => {
-      canvas._loaded = true;
-      const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#c0bbb2';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#888';
-      ctx.font = '11px Courier New';
-      ctx.fillText(src, 10, canvas.height / 2);
-    };
-    img.src = src;
+    const ctx = canvas.getContext('2d');
+
+    if (savedCanvases[i]) {
+      // restore from saved degraded state
+      const img = new Image();
+      img.onload = () => {
+        canvas._loaded = true;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      };
+      img.src = savedCanvases[i];
+    } else {
+      // load from source image
+      const img = new Image();
+      img.onload = () => {
+        canvas._loaded = true;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      };
+      img.onerror = () => {
+        canvas._loaded = true;
+        ctx.fillStyle = '#c0bbb2';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#888';
+        ctx.font = '11px Courier New';
+        ctx.fillText(src, 10, canvas.height / 2);
+      };
+      img.src = src;
+    }
   });
 }
 
@@ -187,7 +210,6 @@ document.addEventListener('mousemove', (e) => {
     lastMouseGrid = { gx, gy };
     applyDamage(gx, gy);
     interactions++;
-    scheduleSave();
     updateDisplay();
   }
 
@@ -212,17 +234,21 @@ document.addEventListener('mousemove', (e) => {
 // ---- Boot ----
 
 async function init() {
-  initCanvases();
-
   const state = await loadState();
+
+  const savedCanvases = {};
   if (state) {
     interactions = state.passes || 0;
     if (state.damage_map) {
       const parsed = JSON.parse(state.damage_map);
       damageMap = new Float32Array(parsed);
     }
+    if (state.canvas1) savedCanvases[0] = state.canvas1;
+    if (state.canvas2) savedCanvases[1] = state.canvas2;
+    if (state.canvas3) savedCanvases[2] = state.canvas3;
   }
 
+  initCanvases(savedCanvases);
   updateDisplay();
 }
 

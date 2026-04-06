@@ -9,8 +9,7 @@ const headers = {
 };
 
 async function loadState() {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/archive_state?id=eq.1&select=passes,image_data`, { headers });
-  const data = await res.json();
+const res = await fetch(`${SUPABASE_URL}/rest/v1/archive_state?id=eq.1&select=passes%2Cimage_data`, { headers });  const data = await res.json();
   return data[0];
 }
 

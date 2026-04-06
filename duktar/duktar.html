@@ -2,15 +2,144 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>duktar v0.5</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+    <title>duktar — dispossessed</title>
     <link rel="stylesheet" href="ds.css" />
   </head>
   <body>
-    <div id="sketch-container"></div>
-    <div id="info">passes: <span id="passes">0</span></div>
-    <button id="reset" onclick="location.reload()">reload to restore</button>
+    <div id="page-wrapper">
+      <header id="site-header">
+        <div id="header-inner">
+          <span class="header-label">COLLECTION NO. 1947-TJK</span>
+          <span class="header-label">RESTRICTED ACCESS</span>
+          <span class="header-label"
+            >LAST MODIFIED: <span id="mod-date">—</span></span
+          >
+        </div>
+      </header>
 
-    <script src="sketch.js"></script>
+      <div id="title-block">
+        <h1>Dukhtar, Dispossessed</h1>
+        <p class="subtitle">A Speculative Counter-Archive</p>
+      </div>
+
+      <div id="columns">
+        <div class="col" id="col-left">
+          <div class="doc-image-block">
+            <canvas
+              class="distort-canvas"
+              data-src="doc1.jpg"
+              width="280"
+              height="380"
+            ></canvas>
+            <p class="doc-caption">Document 1 — Vaccination Record, undated</p>
+          </div>
+          <div class="doc-image-block">
+            <canvas
+              class="distort-canvas"
+              data-src="doc2.jpg"
+              width="280"
+              height="380"
+            ></canvas>
+            <p class="doc-caption">Document 2 — Medical Assessment</p>
+          </div>
+        </div>
+
+        <div class="col" id="col-center">
+          <div class="text-block" id="text-main">
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+              eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+              enim ad minim veniam, quis nostrud exercitation ullamco laboris
+              nisi ut aliquip ex ea commodo consequat.
+            </p>
+            <p>
+              Duis aute irure dolor in reprehenderit in voluptate velit esse
+              cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
+              cupidatat non proident, sunt in culpa qui officia deserunt mollit
+              anim id est laborum.
+            </p>
+            <p>
+              Sed ut perspiciatis unde omnis iste natus error sit voluptatem
+              accusantium doloremque laudantium, totam rem aperiam, eaque ipsa
+              quae ab illo inventore veritatis et quasi architecto beatae vitae
+              dicta sunt explicabo.
+            </p>
+            <p>
+              Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit
+              aut fugit, sed quia consequuntur magni dolores eos qui ratione
+              voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem
+              ipsum quia dolor sit amet.
+            </p>
+            <p>
+              At vero eos et accusamus et iusto odio dignissimos ducimus qui
+              blanditiis praesentium voluptatum deleniti atque corrupti quos
+              dolores et quas molestias excepturi sint occaecati cupiditate non
+              provident.
+            </p>
+          </div>
+          <div class="doc-image-block">
+            <canvas
+              class="distort-canvas"
+              data-src="doc3.jpg"
+              width="280"
+              height="200"
+            ></canvas>
+            <p class="doc-caption">Document 3 — Birth Certificate (partial)</p>
+          </div>
+        </div>
+
+        <div class="col" id="col-right">
+          <div class="text-block">
+            <p>
+              Similique sunt in culpa qui officia deserunt mollitia animi, id
+              est laborum et dolorum fuga. Et harum quidem rerum facilis est et
+              expedita distinctio. Nam libero tempore, cum soluta nobis est
+              eligendi optio.
+            </p>
+            <p>
+              Temporibus autem quibusdam et aut officiis debitis aut rerum
+              necessitatibus saepe eveniet ut et voluptates repudiandae sint et
+              molestiae non recusandae. Itaque earum rerum hic tenetur a
+              sapiente delectus.
+            </p>
+            <p>
+              Quis autem vel eum iure reprehenderit qui in ea voluptate velit
+              esse quam nihil molestiae consequatur, vel illum qui dolorem eum
+              fugiat quo voluptas nulla pariatur ut labore et dolore magnam
+              aliquam quaerat.
+            </p>
+          </div>
+          <div class="text-block">
+            <p>
+              Ut enim ad minima veniam, quis nostrum exercitationem ullam
+              corporis suscipit laboriosam, nisi ut aliquid ex ea commodi
+              consequatur. Quis autem vel eum iure reprehenderit qui voluptate
+              velit esse quam nihil.
+            </p>
+            <p>
+              Nam libero tempore cum soluta nobis eligendi optio cumque nihil
+              impedit quo minus id quod maxime placeat facere possimus omnis
+              voluptas assumenda est omnis dolor repellendus temporibus autem
+              quibusdam.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <footer id="site-footer">
+        <span class="footer-label"
+          >interactions recorded: <span id="interaction-count">0</span></span
+        >
+        <span class="footer-label"
+          >archive integrity: <span id="integrity">100%</span></span
+        >
+        <span class="footer-label">duktar, dispossessed — 2026</span>
+      </footer>
+    </div>
+
+    <!-- invisible overlay canvas for tracking mouse damage -->
+    <canvas id="damage-overlay"></canvas>
+
+    <script src="sketch2.js"></script>
   </body>
 </html>

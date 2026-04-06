@@ -194,10 +194,7 @@ function initCanvases(savedCanvases) {
 function updateDisplay() {
   const avgDamage = damageMap.reduce((a, b) => a + b, 0) / damageMap.length;
   distortText(avgDamage * 8);
-
-  const integrity = Math.max(0, Math.round((1 - avgDamage * 8) * 100));
   document.getElementById('interaction-count').textContent = interactions;
-  document.getElementById('integrity').textContent = integrity + '%';
   document.getElementById('mod-date').textContent = new Date().toISOString().split('T')[0];
 }
 
@@ -251,5 +248,8 @@ async function init() {
   initCanvases(savedCanvases);
   updateDisplay();
 }
+
+
+
 
 init();

@@ -14,7 +14,7 @@ const res = await fetch(`${SUPABASE_URL}/rest/v1/archive_state?id=eq.1&select=pa
 }
 
 async function saveState(passes, imageData) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/archive-state?id=eq.1`, {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/archive_state?id=eq.1`, {
     method: 'PATCH',
     headers,
     body: JSON.stringify({ passes, image_data: imageData })

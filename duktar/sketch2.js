@@ -81,43 +81,42 @@ function getDamageAt(clientX, clientY) {
 function distortCanvas(canvas, damage) {
   const ctx = canvas.getContext('2d');
   if (!canvas._loaded) return;
-  if (damage < 0.01) return;
 
   const w = canvas.width;
   const h = canvas.height;
 
-  const imageData = ctx.getImageData(0, 0, w, h);
+  const offscreen = document.createElement('canvas');
+  offscreen.width = w;
+  offscreen.height = h;
+  const octx = offscreen.getContext('2d');
+
+  const passes = Math.round(damage * 20) + 1;
+  const scale = Math.max(0.1, 1 - passes * 0.05);
+  const sw = w * scale;
+  const sh = h * scale;
+
+  octx.drawImage(canvas, 0, 0, sw, sh);
+  octx.drawImage(offscreen, 0, 0, sw, sh, 0, 0, w, h);
+
+  const imageData = octx.getImageData(0, 0, w, h);
   const data = imageData.data;
-
-  const shift = Math.floor(damage * 12);
-  const noiseAmt = damage * 60;
-
   for (let i = 0; i < data.length; i += 4) {
-    const noise = (Math.random() - 0.5) * noiseAmt;
-    data[i]     = Math.max(0, Math.min(255, data[i]     + noise));
-    data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + noise * 0.8));
-    data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + noise * 0.6));
+    const noise = (Math.random() - 0.5) * passes * 2;
+    data[i]     += noise;
+    data[i + 1] += noise;
+    data[i + 2] += noise;
   }
+  octx.putImageData(imageData, 0, 0);
 
-  if (shift > 0) {
-    for (let y = 0; y < h; y++) {
-      if (Math.random() > damage * 0.4) continue;
-      const s = Math.floor((Math.random() - 0.5) * shift * 2);
-      const rowCopy = new Uint8ClampedArray(w * 4);
-      for (let x = 0; x < w; x++) {
-        const src = ((x - s + w) % w) * 4;
-        rowCopy[x * 4]     = data[y * w * 4 + src];
-        rowCopy[x * 4 + 1] = data[y * w * 4 + src + 1];
-        rowCopy[x * 4 + 2] = data[y * w * 4 + src + 2];
-        rowCopy[x * 4 + 3] = data[y * w * 4 + src + 3];
-      }
-      for (let x = 0; x < w * 4; x++) {
-        data[y * w * 4 + x] = rowCopy[x];
-      }
-    }
-  }
-
-  ctx.putImageData(imageData, 0, 0);
+  // re-encode as JPEG to get compression artifacts
+  const quality = Math.max(0.02, 1 - passes * 0.08);
+  const dataURL = offscreen.toDataURL('image/jpeg', quality);
+  const img = new Image();
+  img.onload = () => {
+    ctx.clearRect(0, 0, w, h);
+    ctx.drawImage(img, 0, 0, w, h);
+  };
+  img.src = dataURL;
 }
 
 // ---- Text distortion ----

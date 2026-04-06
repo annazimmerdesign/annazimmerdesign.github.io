@@ -249,6 +249,23 @@ async function init() {
   updateDisplay();
 }
 
+async function saveState() {
+  console.log('saving...', interactions, canvasStates);
+  const payload = {
+    passes: interactions,
+    damage_map: JSON.stringify(Array.from(damageMap)),
+    canvas1: canvasStates[0] || null,
+    canvas2: canvasStates[1] || null,
+    canvas3: canvasStates[2] || null,
+  };
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/archive_state?id=eq.1`, {
+    method: 'PATCH',
+    headers: HEADERS,
+    body: JSON.stringify(payload)
+  });
+  console.log('save status:', res.status);
+}
+
 
 
 

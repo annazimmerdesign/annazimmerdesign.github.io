@@ -14,11 +14,14 @@ const res = await fetch(`${SUPABASE_URL}/rest/v1/archive_state?id=eq.1&select=pa
 }
 
 async function saveState(passes, imageData) {
-  await fetch(`${SUPABASE_URL}/rest/v1/archive_state?id=eq.1`, {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/archive-state?id=eq.1`, {
     method: 'PATCH',
     headers,
     body: JSON.stringify({ passes, image_data: imageData })
   });
+  const text = await res.text();
+  console.log('save status:', res.status, text);
+  return res.status;
 }
 
 new p5(function(p) {
@@ -121,14 +124,15 @@ new p5(function(p) {
     encode();
   }
 
-  function encode() {
-    const dataURL = offscreen.toDataURL('image/jpeg', quality);
+function encode() {
+  const dataURL = offscreen.toDataURL('image/jpeg', quality);
 
-    p.loadImage(dataURL, async function(newImg) {
-      img = newImg;
-      p.redraw();
-      await saveState(passes, dataURL);
-    });
-  }
+  p.loadImage(dataURL, async function(newImg) {
+    img = newImg;
+    p.redraw();
+    const result = await saveState(passes, dataURL);
+    console.log('save result:', result);
+  });
+}
 
 }, document.getElementById('sketch-container'));

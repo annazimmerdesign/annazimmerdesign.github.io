@@ -155,7 +155,7 @@ function updateDisplay() {
   const avg = damageMap.reduce((a, b) => a + b, 0) / damageMap.length;
   distortText(avg * 8);
   document.getElementById('interaction-count').textContent = interactions;
-  document.getElementById('mod-date').textContent = new Date().toISOString().split('T')[0];
+  document.getElementById('mod-date').textContent = new Date().toISOString().slice(0, 19).replace('T', ' ');
 }
 
 // ---- Mouse ----

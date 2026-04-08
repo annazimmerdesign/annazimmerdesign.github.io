@@ -155,7 +155,17 @@ function updateDisplay() {
   const avg = damageMap.reduce((a, b) => a + b, 0) / damageMap.length;
   distortText(avg * 8);
   document.getElementById('interaction-count').textContent = interactions;
-  document.getElementById('mod-date').textContent = new Date().toISOString().slice(0, 16).replace('T', ' ');
+  const now = new Date();
+  const estTime = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/New_York',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  }).format(now);
+  document.getElementById('mod-date').textContent = estTime + ' EST';
 }
 
 // ---- Mouse ----

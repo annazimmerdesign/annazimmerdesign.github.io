@@ -19,8 +19,6 @@ let interactions = 0;
 let saveTimeout = null;
 let lastMouseGrid = { x: -1, y: -1 };
 const insideCanvases = new Set();
-
-// map canvas index -> current base64 state
 const canvasStates = {};
 
 // ---- Supabase ----
@@ -35,18 +33,18 @@ async function loadState() {
 }
 
 async function saveState() {
-  const payload = {
-    passes: interactions,
-    damage_map: JSON.stringify(Array.from(damageMap)),
-    canvas1: canvasStates[0] || null,
-    canvas2: canvasStates[1] || null,
-    canvas3: canvasStates[2] || null,
-  };
-  await fetch(`${SUPABASE_URL}/rest/v1/archive_state?id=eq.1`, {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/archive_state?id=eq.1`, {
     method: 'PATCH',
     headers: HEADERS,
-    body: JSON.stringify(payload)
+    body: JSON.stringify({
+      passes: interactions,
+      damage_map: JSON.stringify(Array.from(damageMap)),
+      canvas1: canvasStates[0] || null,
+      canvas2: canvasStates[1] || null,
+      canvas3: canvasStates[2] || null,
+    })
   });
+  console.log('saved:', res.status, 'interactions:', interactions);
 }
 
 function scheduleSave() {
@@ -57,9 +55,10 @@ function scheduleSave() {
 // ---- Damage map ----
 
 function gridCoords(clientX, clientY) {
-  const gx = Math.floor((clientX / window.innerWidth) * GRID_W);
-  const gy = Math.floor((clientY / window.innerHeight) * GRID_H);
-  return { gx, gy };
+  return {
+    gx: Math.floor((clientX / window.innerWidth) * GRID_W),
+    gy: Math.floor((clientY / window.innerHeight) * GRID_H)
+  };
 }
 
 function applyDamage(gx, gy) {
@@ -67,12 +66,10 @@ function applyDamage(gx, gy) {
     for (let dx = -BRUSH_RADIUS; dx <= BRUSH_RADIUS; dx++) {
       const dist = Math.sqrt(dx * dx + dy * dy);
       if (dist > BRUSH_RADIUS) continue;
-      const nx = gx + dx;
-      const ny = gy + dy;
+      const nx = gx + dx, ny = gy + dy;
       if (nx < 0 || nx >= GRID_W || ny < 0 || ny >= GRID_H) continue;
-      const falloff = 1 - dist / BRUSH_RADIUS;
       const idx = ny * GRID_W + nx;
-      damageMap[idx] = Math.min(MAX_DAMAGE, damageMap[idx] + DAMAGE_PER_PASS * falloff);
+      damageMap[idx] = Math.min(MAX_DAMAGE, damageMap[idx] + DAMAGE_PER_PASS * (1 - dist / BRUSH_RADIUS));
     }
   }
 }
@@ -86,46 +83,32 @@ function getDamageAt(clientX, clientY) {
 // ---- Canvas distortion ----
 
 function distortCanvas(canvas, damage) {
-  const ctx = canvas.getContext('2d');
   if (!canvas._loaded) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
 
-  const w = canvas.width;
-  const h = canvas.height;
-
-  const offscreen = document.createElement('canvas');
-  offscreen.width = w;
-  offscreen.height = h;
-  const octx = offscreen.getContext('2d');
+  const off = document.createElement('canvas');
+  off.width = w; off.height = h;
+  const octx = off.getContext('2d');
 
   const passes = Math.round(damage * 20) + 1;
   const scale = Math.max(0.1, 1 - passes * 0.05);
-  const sw = w * scale;
-  const sh = h * scale;
+  octx.drawImage(canvas, 0, 0, w * scale, h * scale);
+  octx.drawImage(off, 0, 0, w * scale, h * scale, 0, 0, w, h);
 
-  octx.drawImage(canvas, 0, 0, sw, sh);
-  octx.drawImage(offscreen, 0, 0, sw, sh, 0, 0, w, h);
-
-  const imageData = octx.getImageData(0, 0, w, h);
-  const data = imageData.data;
-  for (let i = 0; i < data.length; i += 4) {
-    const noise = (Math.random() - 0.5) * passes * 2;
-    data[i]     += noise;
-    data[i + 1] += noise;
-    data[i + 2] += noise;
+  const id = octx.getImageData(0, 0, w, h);
+  for (let i = 0; i < id.data.length; i += 4) {
+    const n = (Math.random() - 0.5) * passes * 2;
+    id.data[i] += n; id.data[i+1] += n; id.data[i+2] += n;
   }
-  octx.putImageData(imageData, 0, 0);
+  octx.putImageData(id, 0, 0);
 
-  const quality = Math.max(0.02, 1 - passes * 0.08);
-  const dataURL = offscreen.toDataURL('image/jpeg', quality);
-
+  const dataURL = off.toDataURL('image/jpeg', Math.max(0.02, 1 - passes * 0.08));
   const img = new Image();
   img.onload = () => {
     ctx.clearRect(0, 0, w, h);
     ctx.drawImage(img, 0, 0, w, h);
-
-    // store state for persistence
-    const idx = canvas._index;
-    canvasStates[idx] = dataURL;
+    canvasStates[canvas._index] = dataURL;
     scheduleSave();
   };
   img.src = dataURL;
@@ -134,139 +117,98 @@ function distortCanvas(canvas, damage) {
 // ---- Text distortion ----
 
 function distortText(damage) {
-  const blocks = document.querySelectorAll('.text-block p');
-  blocks.forEach(p => {
+  const glitchChars = '░▒▓█▄▀■□▪▫∎∏∑∆∇∂∫≈≠≡±×÷';
+  document.querySelectorAll('.entry p, .text-block p').forEach(p => {
     if (!p._original) p._original = p.textContent;
-    if (damage < 0.1) {
-      p.textContent = p._original;
-      return;
-    }
-    const chars = p._original.split('');
-    const glitchChars = '░▒▓█▄▀■□▪▫∎∏∑∆∇∂∫≈≠≡±×÷';
-    const corrupted = chars.map(c => {
-      if (c === ' ') return c;
-      if (Math.random() < damage * 0.15)
-        return glitchChars[Math.floor(Math.random() * glitchChars.length)];
-      return c;
-    });
-    p.textContent = corrupted.join('');
+    if (damage < 0.1) { p.textContent = p._original; return; }
+    p.textContent = p._original.split('').map(c =>
+      c !== ' ' && Math.random() < damage * 0.15
+        ? glitchChars[Math.floor(Math.random() * glitchChars.length)]
+        : c
+    ).join('');
   });
 }
 
 // ---- Init canvases ----
 
-function initCanvases(savedCanvases) {
+function initCanvases(saved) {
   document.querySelectorAll('.distort-canvas').forEach((canvas, i) => {
     canvas._index = i;
-    const src = canvas.dataset.src;
     const ctx = canvas.getContext('2d');
-
-    if (savedCanvases[i]) {
-      // restore from saved degraded state
-      const img = new Image();
-      img.onload = () => {
-        canvas._loaded = true;
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      };
-      img.src = savedCanvases[i];
-    } else {
-      // load from source image
-      const img = new Image();
-      img.onload = () => {
-        canvas._loaded = true;
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      };
-      img.onerror = () => {
-        canvas._loaded = true;
-        ctx.fillStyle = '#c0bbb2';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#888';
-        ctx.font = '11px Courier New';
-        ctx.fillText(src, 10, canvas.height / 2);
-      };
-      img.src = src;
-    }
+    const src = canvas.dataset.src;
+    const img = new Image();
+    img.onload = () => { canvas._loaded = true; ctx.drawImage(img, 0, 0, canvas.width, canvas.height); };
+    img.onerror = () => {
+      canvas._loaded = true;
+      ctx.fillStyle = '#c0bbb2';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#888'; ctx.font = '11px Courier New';
+      ctx.fillText(src, 10, canvas.height / 2);
+    };
+    img.src = saved[i] || src;
   });
 }
 
 // ---- Update display ----
 
 function updateDisplay() {
-  const avgDamage = damageMap.reduce((a, b) => a + b, 0) / damageMap.length;
-  distortText(avgDamage * 8);
+  const avg = damageMap.reduce((a, b) => a + b, 0) / damageMap.length;
+  distortText(avg * 8);
   document.getElementById('interaction-count').textContent = interactions;
   document.getElementById('mod-date').textContent = new Date().toISOString().split('T')[0];
 }
 
-// ---- Mouse handler ----
+// ---- Mouse ----
 
-document.addEventListener('mousemove', (e) => {
+document.addEventListener('mousemove', e => {
   const { gx, gy } = gridCoords(e.clientX, e.clientY);
-
   if (gx !== lastMouseGrid.x || gy !== lastMouseGrid.y) {
-    lastMouseGrid = { gx, gy };
+    lastMouseGrid = { x: gx, y: gy };
     applyDamage(gx, gy);
     interactions++;
+    scheduleSave();
     updateDisplay();
   }
 
   document.querySelectorAll('.distort-canvas').forEach(canvas => {
-    const rect = canvas.getBoundingClientRect();
-    const inside =
-      e.clientX >= rect.left && e.clientX <= rect.right &&
-      e.clientY >= rect.top  && e.clientY <= rect.bottom;
-
+    const r = canvas.getBoundingClientRect();
+    const inside = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
     if (inside && !insideCanvases.has(canvas)) {
       insideCanvases.add(canvas);
-      const damage = getDamageAt(e.clientX, e.clientY);
-      distortCanvas(canvas, Math.max(damage, 0.05));
+      distortCanvas(canvas, Math.max(getDamageAt(e.clientX, e.clientY), 0.05));
     }
-
-    if (!inside) {
-      insideCanvases.delete(canvas);
-    }
+    if (!inside) insideCanvases.delete(canvas);
   });
 });
+
+// ---- Reset ----
+
+async function resetArchive() {
+  damageMap = new Float32Array(GRID_W * GRID_H);
+  interactions = 0;
+  canvasStates[0] = null; canvasStates[1] = null; canvasStates[2] = null;
+  await fetch(`${SUPABASE_URL}/rest/v1/archive_state?id=eq.1`, {
+    method: 'PATCH',
+    headers: HEADERS,
+    body: JSON.stringify({ passes: 0, damage_map: null, canvas1: null, canvas2: null, canvas3: null })
+  });
+  location.reload();
+}
 
 // ---- Boot ----
 
 async function init() {
   const state = await loadState();
-
-  const savedCanvases = {};
+  const saved = {};
   if (state) {
     interactions = state.passes || 0;
-    if (state.damage_map) {
-      const parsed = JSON.parse(state.damage_map);
-      damageMap = new Float32Array(parsed);
-    }
-    if (state.canvas1) savedCanvases[0] = state.canvas1;
-    if (state.canvas2) savedCanvases[1] = state.canvas2;
-    if (state.canvas3) savedCanvases[2] = state.canvas3;
+    if (state.damage_map) damageMap = new Float32Array(JSON.parse(state.damage_map));
+    if (state.canvas1) saved[0] = state.canvas1;
+    if (state.canvas2) saved[1] = state.canvas2;
+    if (state.canvas3) saved[2] = state.canvas3;
   }
-
-  initCanvases(savedCanvases);
+  initCanvases(saved);
   updateDisplay();
 }
-
-async function saveState() {
-  console.log('saving...', interactions, canvasStates);
-  const payload = {
-    passes: interactions,
-    damage_map: JSON.stringify(Array.from(damageMap)),
-    canvas1: canvasStates[0] || null,
-    canvas2: canvasStates[1] || null,
-    canvas3: canvasStates[2] || null,
-  };
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/archive_state?id=eq.1`, {
-    method: 'PATCH',
-    headers: HEADERS,
-    body: JSON.stringify(payload)
-  });
-  console.log('save status:', res.status);
-}
-
-
-
 
 init();

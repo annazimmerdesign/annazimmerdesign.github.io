@@ -114,21 +114,6 @@ function distortCanvas(canvas, damage) {
   img.src = dataURL;
 }
 
-// ---- Text distortion ----
-
-function distortText(damage) {
-  const glitchChars = '░▒▓█▄▀■□▪▫∎∏∑∆∇∂∫≈≠≡±×÷';
-  document.querySelectorAll('.entry p, .text-block p').forEach(p => {
-    if (!p._original) p._original = p.textContent;
-    if (damage < 0.1) { p.textContent = p._original; return; }
-    p.textContent = p._original.split('').map(c =>
-      c !== ' ' && Math.random() < damage * 0.15
-        ? glitchChars[Math.floor(Math.random() * glitchChars.length)]
-        : c
-    ).join('');
-  });
-}
-
 // ---- Init canvases ----
 
 function initCanvases(saved) {
@@ -152,18 +137,13 @@ function initCanvases(saved) {
 // ---- Update display ----
 
 function updateDisplay() {
-  const avg = damageMap.reduce((a, b) => a + b, 0) / damageMap.length;
-  distortText(avg * 8);
+  distortText(); // defined in distort-text.js
   document.getElementById('interaction-count').textContent = interactions;
   const now = new Date();
   const estTime = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'America/New_York',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hour12: false
   }).format(now);
   document.getElementById('mod-date').textContent = estTime + ' EST';
 }

@@ -20,7 +20,7 @@
       </header>
 
       <div id="columns">
-        <!-- LEFT COL -->
+        <!-- LEFT COL — navigation -->
         <div class="col" id="col-left">
           <div class="nav-section">
             <div class="nav-header">Navigate</div>
@@ -45,6 +45,17 @@
               <li><a href="#">Post-Soviet Records</a></li>
               <li><a href="#">Diasporic Holdings</a></li>
               <li><a href="#">Personal Documents</a></li>
+            </ul>
+          </div>
+
+          <div class="nav-section">
+            <div class="nav-header">Filter by Tag</div>
+            <ul class="nav-list">
+              <li><a href="#">[maintenance]</a></li>
+              <li><a href="#">[transcription]</a></li>
+              <li><a href="#">[researcher note]</a></li>
+              <li><a href="#">[speculative]</a></li>
+              <li><a href="#">[redacted]</a></li>
             </ul>
           </div>
 
@@ -75,31 +86,30 @@
               ><span class="meta-val">Degrading</span>
             </div>
           </div>
-
-          <div class="doc-image-block">
-            <canvas
-              class="distort-canvas"
-              data-src="duktar.jpg"
-              width="280"
-              height="340"
-            ></canvas>
-            <p class="doc-caption">Vaccination Record — undated</p>
-          </div>
-
-          <div class="doc-image-block">
-            <canvas
-              class="distort-canvas"
-              data-src="duktar.jpg"
-              width="280"
-              height="300"
-            ></canvas>
-            <p class="doc-caption">Medical Assessment</p>
-          </div>
         </div>
 
-        <!-- CENTER COL -->
+        <!-- CENTER COL — documents + notices -->
         <div class="col" id="col-center">
-          <div class="section-header">Archive — Primary Record</div>
+          <div class="section-header">Primary Documents</div>
+
+          <div class="site-notice">
+            <p>
+              <strong>2026.04.12</strong> — New holdings added. Vaccination
+              records digitized. Access unrestricted. Image quality variable.
+            </p>
+          </div>
+
+          <!-- randomized image injected by JS -->
+          <div class="doc-image-block">
+            <canvas
+              class="distort-canvas"
+              id="main-canvas"
+              data-src=""
+              width="480"
+              height="360"
+            ></canvas>
+            <p class="doc-caption" id="main-caption">—</p>
+          </div>
 
           <div class="entry">
             <div class="entry-date">Entry 001 — 1997.03.14 — Medical</div>
@@ -165,81 +175,119 @@
             </p>
           </div>
 
-          <div class="entry">
-            <div class="entry-date">Entry 007 — 1997.07.22 — Personal</div>
-            <p>
-              Temporibus autem quibusdam et aut officiis debitis aut rerum
-              necessitatibus saepe eveniet ut et voluptates repudiandae sint et
-              molestiae non recusandae itaque earum rerum hic tenetur a sapiente
-              delectus.
-            </p>
-          </div>
-
-          <div class="entry">
-            <div class="entry-date">Entry 008 — 1997.08.01 — State</div>
-            <p>
-              Quis autem vel eum iure reprehenderit qui in ea voluptate velit
-              esse quam nihil molestiae consequatur vel illum qui dolorem eum
-              fugiat quo voluptas nulla pariatur ut labore et dolore magnam
-              aliquam quaerat.
-            </p>
-          </div>
-
-          <div class="doc-image-block">
-            <canvas
-              class="distort-canvas"
-              data-src="duktar.jpg"
-              width="560"
-              height="200"
-            ></canvas>
-            <p class="doc-caption">Birth Certificate (partial) — 1997</p>
-          </div>
-
           <div class="inner-panel">
             <div class="inner-panel-header">Related Records</div>
             <div class="inner-panel-item">
-              REF-001 — Adoption Decree No. 447
+              <a href="#">REF-001 — Adoption Decree No. 447</a>
             </div>
             <div class="inner-panel-item">
-              REF-002 — Ministry of Health Form 12-B
+              <a href="#">REF-002 — Ministry of Health Form 12-B</a>
             </div>
-            <div class="inner-panel-item">REF-003 — Regional Court Order</div>
             <div class="inner-panel-item">
-              REF-004 — Translation Certificate
+              <a href="#">REF-003 — Regional Court Order</a>
             </div>
-            <div class="inner-panel-item">REF-005 — Embassy Communication</div>
-            <div class="inner-panel-item">REF-006 — Notarial Record</div>
-            <div class="inner-panel-item">REF-007 — Passport Application</div>
-            <div class="inner-panel-item">REF-008 — Medical Clearance</div>
-            <div class="inner-panel-item">REF-009 — Immigration Record</div>
+            <div class="inner-panel-item">
+              <a href="#">REF-004 — Translation Certificate</a>
+            </div>
+            <div class="inner-panel-item">
+              <a href="#">REF-005 — Embassy Communication</a>
+            </div>
+            <div class="inner-panel-item">
+              <a href="#">REF-006 — Notarial Record</a>
+            </div>
+            <div class="inner-panel-item">
+              <a href="#">REF-007 — Passport Application</a>
+            </div>
+            <div class="inner-panel-item">
+              <a href="#">REF-008 — Medical Clearance</a>
+            </div>
           </div>
         </div>
 
-        <!-- RIGHT COL -->
+        <!-- RIGHT COL — archival update logs -->
         <div class="col" id="col-right">
-          <div class="section-header">Notes</div>
+          <div class="section-header">Archive Log</div>
 
-          <div class="text-block">
+          <div class="log-entry">
+            <div class="log-header">
+              <span class="log-date">2026.04.12</span>
+              <span class="log-tag">maintenance</span>
+            </div>
             <p>
-              Temporibus autem quibusdam et aut officiis debitis aut rerum
-              necessitatibus saepe eveniet ut et voluptates repudiandae sint
-              molestiae non recusandae itaque earum rerum hic tenetur.
+              Three vaccination records rehoused. Original folder deteriorating
+              along spine. Provenance chain for items 004–006 remains
+              incomplete. Custodian unknown.
             </p>
           </div>
 
-          <div class="text-block">
+          <div class="log-entry">
+            <div class="log-header">
+              <span class="log-date">2026.03.28</span>
+              <span class="log-tag tag-transcription">transcription</span>
+            </div>
             <p>
-              Quis autem vel eum iure reprehenderit qui in ea voluptate velit
-              esse quam nihil molestiae consequatur vel illum qui dolorem eum
-              fugiat quo voluptas nulla pariatur.
+              Partial transcription, Medical Assessment Form 12-B: "Subject
+              presents in good health. Age estimated [illegible]. Name of
+              guardian recorded as — [illegible]. Origin: [redacted]."
             </p>
           </div>
 
-          <div class="text-block">
+          <div class="log-entry">
+            <div class="log-header">
+              <span class="log-date">2026.03.15</span>
+              <span class="log-tag tag-researcher">researcher note</span>
+            </div>
             <p>
-              Ut enim ad minima veniam quis nostrum exercitationem ullam
-              corporis suscipit laboriosam nisi ut aliquid ex ea commodi
-              consequatur quis autem vel eum iure reprehenderit.
+              Cannot locate original birth record. Cross-reference with regional
+              civil registry yields three possible matches, none conclusive.
+              Soviet-era reorganization of Dushanbe records complicates search.
+            </p>
+          </div>
+
+          <div class="log-entry">
+            <div class="log-header">
+              <span class="log-date">2026.02.20</span>
+              <span class="log-tag">maintenance</span>
+            </div>
+            <p>
+              Items 001–003 digitized at 300dpi. Original documents returned to
+              holding. Scan quality variable — foxing visible on Item 002. No
+              restoration performed.
+            </p>
+          </div>
+
+          <div class="log-entry">
+            <div class="log-header">
+              <span class="log-date">2026.01.09</span>
+              <span class="log-tag tag-transcription">transcription</span>
+            </div>
+            <p>
+              Vaccination record, undated: "Child received — [illegible] —
+              administered by — [stamp, illegible]. Weight recorded:
+              [illegible]. Next appointment: not recorded."
+            </p>
+          </div>
+
+          <div class="log-entry">
+            <div class="log-header">
+              <span class="log-date">2025.11.14</span>
+              <span class="log-tag tag-researcher">researcher note</span>
+            </div>
+            <p>
+              The archive holds what the archive was given. What was not given
+              is not absent — it is elsewhere, or it is gone. This distinction
+              matters and cannot be resolved from here.
+            </p>
+          </div>
+
+          <div class="log-entry">
+            <div class="log-header">
+              <span class="log-date">2025.09.03</span>
+              <span class="log-tag tag-redacted">redacted</span>
+            </div>
+            <p>
+              [Entry removed. Reason: ████████████. Contact custodian for access
+              request form.]
             </p>
           </div>
 
@@ -261,37 +309,6 @@
               <span class="meta-key">Missing</span
               ><span class="meta-val">Unknown</span>
             </div>
-          </div>
-
-          <div class="inner-panel">
-            <div class="inner-panel-header">Access Log</div>
-            <div class="inner-panel-item">2026.04.06 — Anonymous</div>
-            <div class="inner-panel-item">2026.04.06 — Anonymous</div>
-            <div class="inner-panel-item">2026.04.05 — Anonymous</div>
-            <div class="inner-panel-item">2026.04.05 — Anonymous</div>
-            <div class="inner-panel-item">2026.04.04 — Anonymous</div>
-            <div class="inner-panel-item">2026.04.03 — Anonymous</div>
-            <div class="inner-panel-item">2026.04.01 — Anonymous</div>
-          </div>
-
-          <div class="text-block">
-            <p>
-              Nam libero tempore cum soluta nobis eligendi optio cumque nihil
-              impedit quo minus id quod maxime placeat facere possimus omnis
-              voluptas assumenda est omnis dolor repellendus.
-            </p>
-          </div>
-
-          <div class="text-block">
-            <p>
-              Itaque earum rerum hic tenetur a sapiente delectus ut aut
-              reiciendis voluptatibus maiores alias consequatur aut perferendis
-              doloribus asperiores repellat nam libero tempore.
-            </p>
-          </div>
-
-          <div class="meta-block">
-            <div class="nav-header">Provenance</div>
             <div class="meta-row">
               <span class="meta-key">Origin</span
               ><span class="meta-val">Dushanbe, TJK</span>
@@ -322,6 +339,19 @@
         <button id="reset-btn" onclick="resetArchive()">reset</button>
       </footer>
     </div>
+
+    <script>
+      // randomize main image on load
+      const images = [
+        { src: "image1.jpg", caption: "Vaccination Record — undated" },
+        { src: "image2.jpg", caption: "Medical Assessment — 1997" },
+        { src: "image3.jpg", caption: "Birth Certificate (partial) — 1997" },
+      ];
+      const pick = images[Math.floor(Math.random() * images.length)];
+      const mainCanvas = document.getElementById("main-canvas");
+      mainCanvas.dataset.src = pick.src;
+      document.getElementById("main-caption").textContent = pick.caption;
+    </script>
 
     <script src="distort-text.js"></script>
     <script src="sketch2.js"></script>

@@ -1,113 +1,78 @@
-{
-  "notice": {
-    "date": "2026.04.12",
-    "text": "New holdings added. Vaccination records digitized. Access unrestricted. Image quality variable."
-  },
-  "entries": [
-    {
-      "id": "001",
-      "date": "1997.03.14",
-      "type": "Medical",
-      "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
-    },
-    {
-      "id": "002",
-      "date": "1997.03.14",
-      "type": "Administrative",
-      "text": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-    },
-    {
-      "id": "003",
-      "date": "1997.04.02",
-      "type": "Personal",
-      "text": "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo."
-    },
-    {
-      "id": "004",
-      "date": "1997.04.02",
-      "type": "State",
-      "text": "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est qui dolorem ipsum quia dolor sit amet."
-    },
-    {
-      "id": "005",
-      "date": "1997.05.19",
-      "type": "Medical",
-      "text": "At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident."
-    },
-    {
-      "id": "006",
-      "date": "1997.06.08",
-      "type": "Administrative",
-      "text": "Similique sunt in culpa qui officia deserunt mollitia animi id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio nam libero tempore cum soluta nobis est eligendi optio."
-    }
-  ],
-  "images": [
-    { "src": "image1.jpg", "caption": "Young Turki Girl of Kashgar — c.1891" },
-    { "src": "image2.jpg", "caption": "Three Women in Skullcaps — c.1960" },
-    { "src": "image3.jpg", "caption": "Delegate to the Pioneer Rally, Postcard — 1929" }
-  ],
-  "related": [
-    { "id": "REF-001", "label": "Adoption Decree No. 447" },
-    { "id": "REF-002", "label": "Ministry of Health Form 12-B" },
-    { "id": "REF-003", "label": "Regional Court Order" },
-    { "id": "REF-004", "label": "Translation Certificate" },
-    { "id": "REF-005", "label": "Embassy Communication" },
-    { "id": "REF-006", "label": "Notarial Record" },
-    { "id": "REF-007", "label": "Passport Application" },
-    { "id": "REF-008", "label": "Medical Clearance" }
-  ],
-  "logs": [
-    {
-      "date": "2026.04.12",
-      "tag": "maintenance",
-      "tagClass": "",
-      "text": "Three vaccination records rehoused. Original folder deteriorating along spine. Provenance chain for items 004–006 remains incomplete. Custodian unknown."
-    },
-    {
-      "date": "2026.03.28",
-      "tag": "transcription",
-      "tagClass": "tag-transcription",
-      "text": "Partial transcription, Medical Assessment Form 12-B: \"Subject presents in good health. Age estimated [illegible]. Name of guardian recorded as — [illegible]. Origin: [redacted].\""
-    },
-    {
-      "date": "2026.03.15",
-      "tag": "researcher note",
-      "tagClass": "tag-researcher",
-      "text": "Cannot locate original birth record. Cross-reference with regional civil registry yields three possible matches, none conclusive. Soviet-era reorganization of Dushanbe records complicates search."
-    },
-    {
-      "date": "2026.02.20",
-      "tag": "maintenance",
-      "tagClass": "",
-      "text": "Items 001–003 digitized at 300dpi. Original documents returned to holding. Scan quality variable — foxing visible on Item 002. No restoration performed."
-    },
-    {
-      "date": "2026.01.09",
-      "tag": "transcription",
-      "tagClass": "tag-transcription",
-      "text": "Vaccination record, undated: \"Child received — [illegible] — administered by — [stamp, illegible]. Weight recorded: [illegible]. Next appointment: not recorded.\""
-    },
-    {
-      "date": "2025.11.14",
-      "tag": "researcher note",
-      "tagClass": "tag-researcher",
-      "text": "The archive holds what the archive was given. What was not given is not absent — it is elsewhere, or it is gone. This distinction matters and cannot be resolved from here."
-    },
-    {
-      "date": "2025.09.03",
-      "tag": "redacted",
-      "tagClass": "tag-redacted",
-      "text": "[Entry removed. Reason: ████████████. Contact custodian for access request form.]"
-    }
-  ],
-  "meta": {
-    "holdings": "247 items",
-    "digitized": "31 items",
-    "restricted": "0 items",
-    "missing": "Unknown",
-    "origin": "Dushanbe, TJK",
-    "transferred": "1997",
-    "custodian": "Unknown",
-    "chain": "Incomplete"
+// content-loader.js
+// Fetches content.json and populates all dynamic content on the page
+
+async function loadContent() {
+  const res = await fetch('content.json');
+  const c = await res.json();
+
+  // site notice
+  const notice = document.querySelector('.site-notice p');
+  if (notice && c.notice) {
+    notice.innerHTML = `<strong>${c.notice.date}</strong> — ${c.notice.text}`;
+  }
+
+  // randomize main image
+  if (c.images && c.images.length) {
+    const pick = c.images[Math.floor(Math.random() * c.images.length)];
+    const canvas = document.getElementById('main-canvas');
+    const caption = document.getElementById('main-caption');
+    if (canvas) canvas.dataset.src = pick.src;
+    if (caption) caption.textContent = pick.caption;
+  }
+
+  // archive entries
+  const entriesContainer = document.getElementById('entries-container');
+  if (entriesContainer && c.entries) {
+    entriesContainer.innerHTML = c.entries.map(e => `
+      <div class="entry">
+        <div class="entry-date">Entry ${e.id} — ${e.date} — ${e.type}</div>
+        <p>${e.text}</p>
+      </div>
+    `).join('');
+  }
+
+  // related records panel
+  const relatedContainer = document.getElementById('related-container');
+  if (relatedContainer && c.related) {
+    relatedContainer.innerHTML = c.related.map(r => `
+      <div class="inner-panel-item"><a href="#">${r.id} — ${r.label}</a></div>
+    `).join('');
+  }
+
+  // archive logs
+  const logsContainer = document.getElementById('logs-container');
+  if (logsContainer && c.logs) {
+    logsContainer.innerHTML = c.logs.map(l => `
+      <div class="log-entry">
+        <div class="log-header">
+          <span class="log-date">${l.date}</span>
+          <span class="log-tag ${l.tagClass}">${l.tag}</span>
+        </div>
+        <p>${l.text}</p>
+      </div>
+    `).join('');
+  }
+
+  // archive meta
+  const metaContainer = document.getElementById('meta-container');
+  if (metaContainer && c.meta) {
+    const rows = [
+      ['Holdings', c.meta.holdings],
+      ['Digitized', c.meta.digitized],
+      ['Restricted', c.meta.restricted],
+      ['Missing', c.meta.missing],
+      ['Origin', c.meta.origin],
+      ['Transferred', c.meta.transferred],
+      ['Custodian', c.meta.custodian],
+      ['Chain', c.meta.chain],
+    ];
+    metaContainer.innerHTML = rows.map(([k, v]) => `
+      <div class="meta-row">
+        <span class="meta-key">${k}</span>
+        <span class="meta-val">${v}</span>
+      </div>
+    `).join('');
   }
 }
+
+loadContent();

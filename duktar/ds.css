@@ -7,26 +7,25 @@
 html, body {
   width: 100%;
   height: 100%;
-  background: #c8c4bc;
+  background: #1B3644;
   font-family: Georgia, "Times New Roman", serif;
-  color: #111;
-  font-size: 12px;
-  line-height: 1.5;
+  color: #B5D1CC;
+  font-size: 11px;
+  line-height: 1.4;
 }
 
 #page-wrapper {
   display: grid;
   grid-template-rows: auto 1fr auto;
-  grid-template-columns: 1fr;
   min-height: 100vh;
   width: 100%;
 }
 
 /* HEADER */
 #site-header {
-  background: #bcb8b0;
-  border-bottom: 2px solid #888078;
-  padding: 4px 8px;
+  background: #0f2430;
+  border-bottom: 1px solid #2D0060;
+  padding: 3px 6px;
 }
 
 #header-inner {
@@ -37,120 +36,218 @@ html, body {
 
 .header-label {
   font-family: "Courier New", monospace;
-  font-size: 0.58rem;
-  letter-spacing: 0.12em;
-  color: #444040;
+  font-size: 0.55rem;
+  letter-spacing: 0.14em;
+  color: #9CB29E;
   text-transform: uppercase;
 }
 
-/* COLUMNS */
+/* COLUMNS — two narrow, one wide */
 #columns {
   display: grid;
-  grid-template-columns: 200px 1fr 220px;
+  grid-template-columns: 160px 1fr 180px;
   align-items: start;
   width: 100%;
-  height: 100%;
-  border-top: 1px solid #a09890;
+  border-top: 1px solid #2D4F5E;
 }
 
 .col {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  min-height: 100%;
 }
 
 #col-left {
-  border-right: 1px solid #a09890;
-  background: #c0bbb2;
+  border-right: 1px solid #2D4F5E;
+  background: #162e3a;
 }
 
 #col-center {
-  border-right: 1px solid #a09890;
-  background: #ccc8c0;
+  border-right: 1px solid #2D4F5E;
+  background: #1B3644;
 }
 
 #col-right {
-  background: #c8c4bc;
+  background: #162e3a;
 }
 
-/* SECTION HEADERS — like the red bars in the reference */
+/* SECTION HEADERS */
 .section-header {
-  background: #888078;
-  color: #e8e4dc;
+  background: #2D0060;
+  color: #B5D1CC;
   font-family: "Courier New", monospace;
-  font-size: 0.58rem;
-  letter-spacing: 0.14em;
+  font-size: 0.52rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  padding: 3px 6px;
-  border-bottom: 1px solid #6a6460;
+  padding: 2px 5px;
+  border-bottom: 1px solid #1a0040;
 }
 
-/* TEXT */
+/* ENTRIES */
+.entry {
+  padding: 4px 6px;
+  border-bottom: 1px solid #2D4F5E;
+}
+
+.entry-date {
+  font-family: "Courier New", monospace;
+  font-size: 0.52rem;
+  color: #9FC2B2;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+
+.entry p {
+  font-size: 0.7rem;
+  line-height: 1.5;
+  color: #B5D1CC;
+}
+
+/* TEXT BLOCKS */
 .text-block {
-  padding: 8px;
-  border-bottom: 1px solid #a09890;
+  padding: 4px 6px;
+  border-bottom: 1px solid #2D4F5E;
 }
 
 .text-block p {
-  margin-bottom: 8px;
-  font-size: 0.75rem;
-  line-height: 1.6;
-  color: #1a1a1a;
-  text-align: left;
+  font-size: 0.7rem;
+  line-height: 1.5;
+  color: #B5D1CC;
+  margin-bottom: 4px;
 }
 
 .text-block p:last-child {
   margin-bottom: 0;
 }
 
-/* DATE-STAMPED ENTRIES like the reference */
-.entry {
-  padding: 6px 8px;
-  border-bottom: 1px solid #a09890;
+/* NAV LIST — dense left column nav like deformat reference */
+.nav-section {
+  border-bottom: 1px solid #2D4F5E;
+  padding: 0;
 }
 
-.entry-date {
+.nav-header {
+  background: #2D0060;
+  color: #9FC2B2;
   font-family: "Courier New", monospace;
-  font-size: 0.58rem;
-  color: #666;
-  letter-spacing: 0.06em;
-  margin-bottom: 2px;
+  font-size: 0.5rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 2px 5px;
+  border-bottom: 1px solid #1a0040;
 }
 
-.entry p {
-  font-size: 0.75rem;
-  line-height: 1.55;
-  color: #1a1a1a;
+.nav-list {
+  list-style: none;
+  padding: 3px 0;
+}
+
+.nav-list li {
+  padding: 1px 8px;
+}
+
+.nav-list li a {
+  font-family: "Courier New", monospace;
+  font-size: 0.52rem;
+  color: #9CB29E;
+  text-decoration: none;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  display: block;
+}
+
+.nav-list li a:hover {
+  color: #B5D1CC;
+  text-decoration: underline;
 }
 
 /* IMAGES */
 .doc-image-block {
-  padding: 6px 8px;
-  border-bottom: 1px solid #a09890;
+  padding: 4px 6px;
+  border-bottom: 1px solid #2D4F5E;
 }
 
 .distort-canvas {
   width: 100%;
   height: auto;
   display: block;
-  background: #e8e4dc;
-  border: 1px solid #908880;
+  background: #0f2430;
+  border: 1px solid #2D4F5E;
+  filter: grayscale(15%);
 }
 
 .doc-caption {
   font-family: "Courier New", monospace;
-  font-size: 0.52rem;
-  color: #666;
+  font-size: 0.48rem;
+  color: #9CB29E;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  margin-top: 3px;
+  margin-top: 2px;
+}
+
+/* METADATA BLOCK */
+.meta-block {
+  padding: 4px 6px;
+  border-bottom: 1px solid #2D4F5E;
+}
+
+.meta-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 1px 0;
+  border-bottom: 1px dotted #2D4F5E;
+}
+
+.meta-key {
+  font-family: "Courier New", monospace;
+  font-size: 0.5rem;
+  color: #9FC2B2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.meta-val {
+  font-family: "Courier New", monospace;
+  font-size: 0.5rem;
+  color: #B5D1CC;
+  letter-spacing: 0.04em;
+}
+
+/* SCROLLABLE INNER PANEL like res72 */
+.inner-panel {
+  border: 1px solid #2D4F5E;
+  margin: 4px 6px;
+  overflow-y: auto;
+  max-height: 180px;
+  background: #0f2430;
+}
+
+.inner-panel-header {
+  background: #2D4F5E;
+  color: #9FC2B2;
+  font-family: "Courier New", monospace;
+  font-size: 0.5rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 2px 5px;
+  position: sticky;
+  top: 0;
+}
+
+.inner-panel-item {
+  padding: 2px 5px;
+  border-bottom: 1px solid #1B3644;
+  font-family: "Courier New", monospace;
+  font-size: 0.5rem;
+  color: #9CB29E;
+  letter-spacing: 0.04em;
 }
 
 /* FOOTER */
 #site-footer {
-  background: #bcb8b0;
-  border-top: 2px solid #888078;
-  padding: 4px 8px;
+  background: #0f2430;
+  border-top: 1px solid #2D0060;
+  padding: 3px 6px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -158,8 +255,25 @@ html, body {
 
 .footer-label {
   font-family: "Courier New", monospace;
-  font-size: 0.58rem;
+  font-size: 0.52rem;
   letter-spacing: 0.08em;
-  color: #444040;
+  color: #9CB29E;
   text-transform: uppercase;
+}
+
+/* RESET BUTTON */
+#reset-btn {
+  font-family: "Courier New", monospace;
+  font-size: 0.52rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9CB29E;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+#reset-btn:hover {
+  color: #B5D1CC;
 }

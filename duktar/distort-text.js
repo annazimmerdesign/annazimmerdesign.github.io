@@ -1,55 +1,46 @@
 // distort-text.js
-// Archival text degradation — OCR errors, deletions, word substitution, sentence reordering
-// Expects getDamageAt(cx, cy) to be available from sketch2.js
+// Gradual, persistent, localized archival text degradation
+// Each paragraph accumulates damage independently based on local damage map position
+// Changes are slow and subtle — one small corruption per threshold crossing
 
-// OCR-style visual substitutions — letters that look alike when scanned
 const OCR_SUBS = {
-  'a': ['o', 'e', 'ci'],
-  'b': ['h', 'li', 'k'],
-  'c': ['e', 'o', 'c'],
-  'd': ['cl', 'di', 'ol'],
-  'e': ['c', 'a', 'ei'],
-  'f': ['t', 'fi', 'f'],
-  'g': ['q', 'gi', 'y'],
-  'h': ['li', 'n', 'h'],
-  'i': ['l', '1', 'i'],
-  'l': ['1', 'i', 'li'],
-  'm': ['rn', 'ni', 'in'],
-  'n': ['ri', 'ni', 'n'],
-  'o': ['0', 'u', 'c'],
-  'p': ['pi', 'p', 'q'],
-  'q': ['g', 'qi', 'p'],
-  'r': ['n', 'ri', 'r'],
-  's': ['5', 'si', 'z'],
-  't': ['f', 'ti', '+'],
-  'u': ['n', 'ui', 'v'],
-  'v': ['u', 'vi', 'y'],
-  'w': ['vv', 'wi', 'vu'],
-  'x': ['xi', 'k', 'x'],
-  'y': ['v', 'yi', 'y'],
-  'z': ['s', 'zi', '2'],
+  'a': ['o', 'e', 'ci'], 'b': ['h', 'li', 'k'], 'c': ['e', 'o'],
+  'd': ['cl', 'ol'], 'e': ['c', 'a'], 'f': ['t', 'fi'],
+  'g': ['q', 'y'], 'h': ['li', 'n'], 'i': ['l', '1'],
+  'l': ['1', 'i'], 'm': ['rn', 'ni'], 'n': ['ri', 'ni'],
+  'o': ['0', 'u'], 'p': ['q'], 'q': ['g', 'p'],
+  'r': ['n', 'ri'], 's': ['5', 'z'], 't': ['f', '+'],
+  'u': ['n', 'v'], 'v': ['u', 'y'], 'w': ['vv', 'vu'],
+  'x': ['k'], 'y': ['v'], 'z': ['s', '2'],
 };
 
-// Words that get substituted — bureaucratic/wrong-register replacements
 const WORD_SUBS = {
   'child': ['subject', 'minor', 'ward'],
-  'mother': ['female guardian', 'maternal unit', 'parent'],
-  'father': ['male guardian', 'paternal unit', 'parent'],
-  'name': ['designation', 'identifier', 'label'],
-  'born': ['registered', 'documented', 'recorded'],
-  'home': ['place of origin', 'domicile', 'residence'],
-  'family': ['unit', 'household', 'group'],
-  'health': ['condition', 'status', 'state'],
-  'good': ['satisfactory', 'acceptable', 'adequate'],
-  'normal': ['within parameters', 'standard', 'typical'],
-  'age': ['date of registration', 'recorded age', 'estimated age'],
-  'date': ['timestamp', 'recorded date', 'filing date'],
+  'mother': ['female guardian', 'maternal unit'],
+  'father': ['male guardian', 'paternal unit'],
+  'name': ['designation', 'identifier'],
+  'born': ['registered', 'documented'],
+  'home': ['place of origin', 'domicile'],
+  'family': ['unit', 'household'],
+  'health': ['condition', 'status'],
+  'good': ['satisfactory', 'adequate'],
+  'normal': ['within parameters', 'standard'],
+  'age': ['recorded age', 'estimated age'],
+  'date': ['timestamp', 'recorded date'],
 };
 
-function ocrCorrupt(word, intensity) {
+// per-paragraph state: tracks current corrupted text and last damage level applied
+const paragraphState = new WeakMap();
+
+// how much damage must accumulate before another corruption step fires
+const DAMAGE_STEP = 0.05;
+// how many characters/words to corrupt per step
+const CHARS_PER_STEP = 2;
+
+function ocrCorrupt(word) {
   return word.split('').map(c => {
     const lower = c.toLowerCase();
-    if (OCR_SUBS[lower] && Math.random() < intensity * 0.3) {
+    if (OCR_SUBS[lower] && Math.random() < 0.6) {
       const sub = OCR_SUBS[lower][Math.floor(Math.random() * OCR_SUBS[lower].length)];
       return c === c.toUpperCase() ? sub.toUpperCase() : sub;
     }
@@ -57,61 +48,73 @@ function ocrCorrupt(word, intensity) {
   }).join('');
 }
 
-function degradeParagraph(text, damage) {
-  if (damage <= 0) return text;
+function applyOneCorruption(words, damage) {
+  // pick a random word index to corrupt
+  const idx = Math.floor(Math.random() * words.length);
+  const word = words[idx];
+  const clean = word.replace(/[^a-zA-Z]/g, '').toLowerCase();
 
-  const sentences = text.match(/[^.!?]+[.!?]*/g) || [text];
+  const roll = Math.random();
 
-  // high damage: reorder sentences
-  if (damage > 0.6 && sentences.length > 1 && Math.random() < damage * 0.4) {
-    for (let i = sentences.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [sentences[i], sentences[j]] = [sentences[j], sentences[i]];
-    }
+  // high damage: delete word (replace with spaces)
+  if (damage > 0.5 && roll < 0.25) {
+    words[idx] = '\u00a0'.repeat(word.length);
+    return;
   }
 
-  return sentences.map(sentence => {
-    const words = sentence.split(/(\s+)/);
-    return words.map((token, i) => {
-      if (/^\s+$/.test(token)) return token;
+  // medium damage: bureaucratic substitution
+  if (damage > 0.25 && WORD_SUBS[clean] && roll < 0.4) {
+    const subs = WORD_SUBS[clean];
+    words[idx] = subs[Math.floor(Math.random() * subs.length)];
+    return;
+  }
 
-      const clean = token.replace(/[^a-zA-Z]/g, '').toLowerCase();
-
-      // word deletion — replaced with blank spaces preserving length
-      if (damage > 0.2 && Math.random() < damage * 0.12) {
-        return '\u00a0'.repeat(token.length);
-      }
-
-      // bureaucratic word substitution
-      if (damage > 0.15 && WORD_SUBS[clean] && Math.random() < damage * 0.35) {
-        const subs = WORD_SUBS[clean];
-        return subs[Math.floor(Math.random() * subs.length)];
-      }
-
-      // OCR letter corruption
-      if (damage > 0.05 && Math.random() < damage * 0.25) {
-        return ocrCorrupt(token, damage);
-      }
-
-      return token;
-    }).join('');
-  }).join(' ');
+  // low damage: OCR letter corruption
+  words[idx] = ocrCorrupt(word);
 }
 
 function distortText() {
   document.querySelectorAll('.entry p, .text-block p').forEach(p => {
-    if (!p._original) p._original = p.textContent.trim();
+    // init state for this paragraph
+    if (!paragraphState.has(p)) {
+      paragraphState.set(p, {
+        original: p.textContent.trim(),
+        words: p.textContent.trim().split(/(\s+)/),
+        lastDamage: 0,
+        corruptions: 0
+      });
+    }
 
+    const state = paragraphState.get(p);
     const rect = p.getBoundingClientRect();
+
+    // only process paragraphs currently in viewport
+    if (rect.bottom < 0 || rect.top > window.innerHeight) return;
+
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
     const damage = typeof getDamageAt === 'function' ? getDamageAt(cx, cy) : 0;
 
-    if (damage < 0.02) {
-      p.textContent = p._original;
-      return;
+    // only corrupt if damage has grown enough since last corruption
+    if (damage - state.lastDamage < DAMAGE_STEP) return;
+
+    // apply one corruption step
+    for (let i = 0; i < CHARS_PER_STEP; i++) {
+      applyOneCorruption(state.words, damage);
     }
 
-    p.textContent = degradeParagraph(p._original, damage);
+    // high damage: occasionally reorder two adjacent sentences
+    if (damage > 0.6 && Math.random() < 0.05) {
+      const text = state.words.join('');
+      const sentences = text.match(/[^.!?]+[.!?]*/g);
+      if (sentences && sentences.length > 1) {
+        const i = Math.floor(Math.random() * (sentences.length - 1));
+        [sentences[i], sentences[i + 1]] = [sentences[i + 1], sentences[i]];
+        state.words = sentences.join(' ').split(/(\s+)/);
+      }
+    }
+
+    state.lastDamage = damage;
+    p.textContent = state.words.join('');
   });
 }

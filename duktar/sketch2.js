@@ -213,4 +213,4 @@ async function init() {
   updateDisplay();
 }
 
-init();
+document.addEventListener('contentLoaded', init);

@@ -73,6 +73,7 @@ async function loadContent() {
       </div>
     `).join('');
   }
+document.dispatchEvent(new Event('contentLoaded'));
 }
 
 loadContent();

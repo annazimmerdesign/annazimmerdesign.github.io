@@ -42,9 +42,12 @@
     }
   ],
   "images": [
-    { "src": "image1.jpg", "caption": "Young Turki Girl of Kashgar — c.1891" },
+    { "src": "image3.jpg", "caption": "Young Turki Girl of Kashgar — c.1891" },
     { "src": "image2.jpg", "caption": "Three Women in Skullcaps — c.1960" },
-    { "src": "image3.jpg", "caption": "Delegate to the Pioneer Rally, Postcard — 1929" }
+    { "src": "image1.jpg", "caption": "Delegate to the Pioneer Rally, Postcard — 1929" },
+    { "src": "image4.jpg", "caption": "'October Emancipated the eAstern Woman and Revealed Her Face' — 1929" },
+    { "src": "image5.jpg", "caption": "Types of Sart Women, Samarkand — c.1900" }
+
   ],
   "related": [
     { "id": "REF-001", "label": "Adoption Decree No. 447" },

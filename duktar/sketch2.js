@@ -13,6 +13,7 @@ const GRID_H = 96;
 const BRUSH_RADIUS = 4;
 const DAMAGE_PER_PASS = 0.04;
 const MAX_DAMAGE = 1.0;
+const IMAGE_DAMAGE_THRESHOLD = 0.08;
 
 let damageMap = new Float32Array(GRID_W * GRID_H);
 let interactions = 0;
@@ -80,10 +81,12 @@ function getDamageAt(clientX, clientY) {
   return damageMap[gy * GRID_W + gx];
 }
 
-// ---- Canvas distortion ----
+// ---- Canvas distortion — gradual, threshold-gated ----
 
 function distortCanvas(canvas, damage) {
   if (!canvas._loaded) return;
+  if (damage < IMAGE_DAMAGE_THRESHOLD) return;
+
   const ctx = canvas.getContext('2d');
   const w = canvas.width, h = canvas.height;
 
@@ -91,19 +94,25 @@ function distortCanvas(canvas, damage) {
   off.width = w; off.height = h;
   const octx = off.getContext('2d');
 
-  const passes = Math.round(damage * 20) + 1;
-  const scale = Math.max(0.1, 1 - passes * 0.05);
+  // conservative — damage 1.0 = 8 passes max
+  const passes = Math.round(damage * 8);
+  // gentle shrink — never below 50%
+  const scale = Math.max(0.5, 1 - passes * 0.025);
+
   octx.drawImage(canvas, 0, 0, w * scale, h * scale);
   octx.drawImage(off, 0, 0, w * scale, h * scale, 0, 0, w, h);
 
   const id = octx.getImageData(0, 0, w, h);
   for (let i = 0; i < id.data.length; i += 4) {
-    const n = (Math.random() - 0.5) * passes * 2;
+    const n = (Math.random() - 0.5) * passes * 1.2;
     id.data[i] += n; id.data[i+1] += n; id.data[i+2] += n;
   }
   octx.putImageData(id, 0, 0);
 
-  const dataURL = off.toDataURL('image/jpeg', Math.max(0.02, 1 - passes * 0.08));
+  // quality never drops below 0.4
+  const quality = Math.max(0.4, 1 - damage * 0.6);
+  const dataURL = off.toDataURL('image/jpeg', quality);
+
   const img = new Image();
   img.onload = () => {
     ctx.clearRect(0, 0, w, h);
@@ -125,10 +134,11 @@ function initCanvases(saved) {
     img.onload = () => { canvas._loaded = true; ctx.drawImage(img, 0, 0, canvas.width, canvas.height); };
     img.onerror = () => {
       canvas._loaded = true;
-      ctx.fillStyle = '#c0bbb2';
+      ctx.fillStyle = '#bec4cc';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#888'; ctx.font = '11px Courier New';
-      ctx.fillText(src, 10, canvas.height / 2);
+      ctx.fillStyle = '#1a3a6b';
+      ctx.font = '11px Courier New';
+      ctx.fillText(src || 'image not found', 10, canvas.height / 2);
     };
     img.src = saved[i] || src;
   });
@@ -137,7 +147,7 @@ function initCanvases(saved) {
 // ---- Update display ----
 
 function updateDisplay() {
-  distortText(); // defined in distort-text.js
+  distortText();
   document.getElementById('interaction-count').textContent = interactions;
   const now = new Date();
   const estTime = new Intl.DateTimeFormat('en-CA', {
@@ -162,10 +172,12 @@ document.addEventListener('mousemove', e => {
 
   document.querySelectorAll('.distort-canvas').forEach(canvas => {
     const r = canvas.getBoundingClientRect();
-    const inside = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+    const inside = e.clientX >= r.left && e.clientX <= r.right &&
+                   e.clientY >= r.top  && e.clientY <= r.bottom;
     if (inside && !insideCanvases.has(canvas)) {
       insideCanvases.add(canvas);
-      distortCanvas(canvas, Math.max(getDamageAt(e.clientX, e.clientY), 0.05));
+      const damage = getDamageAt(e.clientX, e.clientY);
+      if (damage >= IMAGE_DAMAGE_THRESHOLD) distortCanvas(canvas, damage);
     }
     if (!inside) insideCanvases.delete(canvas);
   });

@@ -74,8 +74,7 @@ function applyOneCorruption(words, damage) {
 }
 
 function distortText() {
-  document.querySelectorAll('.entry p, .text-block p').forEach(p => {
-    // init state for this paragraph
+    document.querySelectorAll('.entry p, .text-block p, .log-entry p').forEach(p => {    // init state for this paragraph
     if (!paragraphState.has(p)) {
       paragraphState.set(p, {
         original: p.textContent.trim(),

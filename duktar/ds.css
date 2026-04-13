@@ -7,9 +7,9 @@
 html, body {
   width: 100%;
   height: 100%;
-  background: #c8cdd6;
+  background: #c9bfad;
   font-family: Georgia, "Times New Roman", serif;
-  color: #0d1a2e;
+  color: #1c1208;
   font-size: 11px;
   line-height: 1.4;
 }
@@ -17,16 +17,16 @@ html, body {
 #page-wrapper {
   max-width: 1100px;
   margin: 0 auto;
-  background: #c8cdd6;
-  border-left: 1px solid #a8b0bc;
-  border-right: 1px solid #a8b0bc;
+  background: #c9bfad;
+  border-left: 1px solid #a09080;
+  border-right: 1px solid #a09080;
   min-height: 100vh;
 }
 
 /* HEADER */
 #site-header {
-  background: #1a3a6b;
-  border-bottom: 2px solid #0d2244;
+  background: #3b2a1a;
+  border-bottom: 2px solid #1c1208;
   padding: 3px 8px;
 }
 
@@ -40,7 +40,7 @@ html, body {
   font-family: "Courier New", monospace;
   font-size: 0.53rem;
   letter-spacing: 0.14em;
-  color: #c8d8f0;
+  color: #e8dcc8;
   text-transform: uppercase;
 }
 
@@ -50,7 +50,7 @@ html, body {
   grid-template-columns: 155px 1fr 200px;
   align-items: start;
   width: 100%;
-  border-top: 1px solid #a8b0bc;
+  border-top: 1px solid #a09080;
 }
 
 .col {
@@ -60,35 +60,35 @@ html, body {
 }
 
 #col-left {
-  border-right: 1px solid #a8b0bc;
-  background: #d4d9e2;
+  border-right: 1px solid #a09080;
+  background: #c0b09a;
 }
 
 #col-center {
-  border-right: 1px solid #a8b0bc;
-  background: #dde1e8;
+  border-right: 1px solid #a09080;
+  background: #cdc0aa;
 }
 
 #col-right {
-  background: #d4d9e2;
+  background: #c0b09a;
 }
 
-/* SECTION / NAV HEADERS — cobalt blue bars */
+/* SECTION / NAV HEADERS — dark warm brown bars */
 .section-header,
 .nav-header {
-  background: #1a3a6b;
-  color: #c8d8f0;
+  background: #3b2a1a;
+  color: #e8dcc8;
   font-family: "Courier New", monospace;
   font-size: 0.52rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   padding: 2px 6px;
-  border-bottom: 1px solid #0d2244;
+  border-bottom: 1px solid #1c1208;
 }
 
 /* NAV */
 .nav-section {
-  border-bottom: 1px solid #a8b0bc;
+  border-bottom: 1px solid #a09080;
 }
 
 .nav-list {
@@ -98,13 +98,13 @@ html, body {
 
 .nav-list li {
   padding: 1px 0;
-  border-bottom: 1px solid #bec4cc;
+  border-bottom: 1px solid #b0a090;
 }
 
 .nav-list li a {
   font-family: "Courier New", monospace;
   font-size: 0.52rem;
-  color: #1a3a6b;
+  color: #3b2a1a;
   text-decoration: none;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -113,20 +113,20 @@ html, body {
 }
 
 .nav-list li a:hover {
-  background: #1a3a6b;
-  color: #c8d8f0;
+  background: #3b2a1a;
+  color: #e8dcc8;
 }
 
 /* ENTRIES */
 .entry {
   padding: 4px 7px;
-  border-bottom: 1px solid #a8b0bc;
+  border-bottom: 1px solid #a09080;
 }
 
 .entry-date {
   font-family: "Courier New", monospace;
   font-size: 0.5rem;
-  color: #1a3a6b;
+  color: #3b2a1a;
   letter-spacing: 0.06em;
   margin-bottom: 2px;
   text-transform: uppercase;
@@ -135,19 +135,19 @@ html, body {
 .entry p {
   font-size: 0.7rem;
   line-height: 1.55;
-  color: #0d1a2e;
+  color: #1c1208;
 }
 
 /* TEXT BLOCKS */
 .text-block {
   padding: 4px 7px;
-  border-bottom: 1px solid #a8b0bc;
+  border-bottom: 1px solid #a09080;
 }
 
 .text-block p {
   font-size: 0.7rem;
   line-height: 1.55;
-  color: #0d1a2e;
+  color: #1c1208;
   margin-bottom: 3px;
 }
 
@@ -155,20 +155,20 @@ html, body {
 
 /* METADATA */
 .meta-block {
-  border-bottom: 1px solid #a8b0bc;
+  border-bottom: 1px solid #a09080;
 }
 
 .meta-row {
   display: flex;
   justify-content: space-between;
   padding: 2px 7px;
-  border-bottom: 1px dotted #bec4cc;
+  border-bottom: 1px dotted #b0a090;
 }
 
 .meta-key {
   font-family: "Courier New", monospace;
   font-size: 0.5rem;
-  color: #1a3a6b;
+  color: #3b2a1a;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -176,14 +176,14 @@ html, body {
 .meta-val {
   font-family: "Courier New", monospace;
   font-size: 0.5rem;
-  color: #0d1a2e;
+  color: #1c1208;
   letter-spacing: 0.04em;
 }
 
 /* LOG ENTRIES — right column */
 .log-entry {
   padding: 4px 7px;
-  border-bottom: 1px solid #a8b0bc;
+  border-bottom: 1px solid #a09080;
 }
 
 .log-header {
@@ -196,7 +196,7 @@ html, body {
 .log-date {
   font-family: "Courier New", monospace;
   font-size: 0.5rem;
-  color: #1a3a6b;
+  color: #3b2a1a;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -204,42 +204,42 @@ html, body {
 .log-tag {
   font-family: "Courier New", monospace;
   font-size: 0.48rem;
-  color: #c8d8f0;
-  background: #1a3a6b;
+  color: #e8dcc8;
+  background: #3b2a1a;
   padding: 0px 4px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.log-tag.tag-transcription { background: #2a5298; }
-.log-tag.tag-researcher    { background: #3a6b8a; }
-.log-tag.tag-speculative   { background: #4a3a7a; }
-.log-tag.tag-redacted      { background: #444; }
+.log-tag.tag-transcription { background: #5c4a32; }
+.log-tag.tag-researcher    { background: #4a3d2a; }
+.log-tag.tag-speculative   { background: #3a2e40; }
+.log-tag.tag-redacted      { background: #2a2520; }
 
 .log-entry p {
   font-size: 0.68rem;
   line-height: 1.5;
-  color: #0d1a2e;
+  color: #1c1208;
 }
 
 /* IMAGES */
 .doc-image-block {
   padding: 5px 7px;
-  border-bottom: 1px solid #a8b0bc;
+  border-bottom: 1px solid #a09080;
 }
 
 .distort-canvas {
   width: 100%;
   height: auto;
   display: block;
-  background: #bec4cc;
-  border: 1px solid #a8b0bc;
+  background: #b0a090;
+  border: 1px solid #a09080;
 }
 
 .doc-caption {
   font-family: "Courier New", monospace;
   font-size: 0.48rem;
-  color: #1a3a6b;
+  color: #3b2a1a;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   margin-top: 2px;
@@ -247,16 +247,16 @@ html, body {
 
 /* INNER PANEL */
 .inner-panel {
-  border: 1px solid #a8b0bc;
+  border: 1px solid #a09080;
   margin: 5px 7px;
   overflow-y: auto;
   max-height: 160px;
-  background: #c8cdd6;
+  background: #b8a890;
 }
 
 .inner-panel-header {
-  background: #1a3a6b;
-  color: #c8d8f0;
+  background: #3b2a1a;
+  color: #e8dcc8;
   font-family: "Courier New", monospace;
   font-size: 0.5rem;
   letter-spacing: 0.12em;
@@ -268,15 +268,15 @@ html, body {
 
 .inner-panel-item {
   padding: 2px 6px;
-  border-bottom: 1px solid #bec4cc;
+  border-bottom: 1px solid #b0a090;
   font-family: "Courier New", monospace;
   font-size: 0.5rem;
-  color: #1a3a6b;
+  color: #3b2a1a;
   letter-spacing: 0.04em;
 }
 
 .inner-panel-item a {
-  color: #1a3a6b;
+  color: #3b2a1a;
   text-decoration: none;
 }
 
@@ -287,25 +287,25 @@ html, body {
 /* SITE UPDATE NOTICE */
 .site-notice {
   padding: 4px 7px;
-  border-bottom: 2px solid #1a3a6b;
-  background: #c8d8f0;
+  border-bottom: 2px solid #3b2a1a;
+  background: #ddd0b0;
 }
 
 .site-notice p {
   font-family: "Courier New", monospace;
   font-size: 0.55rem;
-  color: #0d2244;
+  color: #1c1208;
   letter-spacing: 0.04em;
 }
 
 .site-notice strong {
-  color: #1a3a6b;
+  color: #3b2a1a;
 }
 
 /* FOOTER */
 #site-footer {
-  background: #1a3a6b;
-  border-top: 2px solid #0d2244;
+  background: #3b2a1a;
+  border-top: 2px solid #1c1208;
   padding: 3px 8px;
   display: flex;
   justify-content: space-between;
@@ -316,7 +316,7 @@ html, body {
   font-family: "Courier New", monospace;
   font-size: 0.52rem;
   letter-spacing: 0.08em;
-  color: #c8d8f0;
+  color: #e8dcc8;
   text-transform: uppercase;
 }
 
@@ -325,14 +325,14 @@ html, body {
   font-size: 0.52rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #c8d8f0;
+  color: #e8dcc8;
   background: none;
-  border: 1px solid #c8d8f0;
+  border: 1px solid #e8dcc8;
   cursor: pointer;
   padding: 1px 5px;
 }
 
 #reset-btn:hover {
-  background: #c8d8f0;
-  color: #0d2244;
+  background: #e8dcc8;
+  color: #1c1208;
 }

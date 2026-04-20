@@ -23,7 +23,7 @@ let interactions = 0;
 let connectedClients = 0;
 let socketConnected = false;
 let lastMouseGrid = { x: -1, y: -1 };
-const insideCanvases = new Set();
+let lastDistortTime = 0;
 
 // ---- Socket ----
 
@@ -125,8 +125,8 @@ function getDamageAt(clientX, clientY) {
 }
 
 // ---- Canvas distortion ----
-// Always redraws from original source image so degradation is
-// deterministic — same damage level always produces same result.
+// Always redraws from original source so degradation is
+// deterministic — same damage level always looks the same.
 
 function distortCanvas(canvas, damage) {
   if (!canvas._loaded || !canvas._originalSrc) return;
@@ -158,7 +158,6 @@ function distortCanvas(canvas, damage) {
     }
     octx.putImageData(id, 0, 0);
 
-    const quality = Math.max(0.4, 1 - damage * 0.6);
     ctx.clearRect(0, 0, w, h);
     ctx.drawImage(off, 0, 0, w, h);
   };
@@ -176,15 +175,12 @@ function initCanvases() {
 
     const img = new Image();
     img.onload = () => {
-      // correct aspect ratio
       const ratio = img.naturalHeight / img.naturalWidth;
       canvas.height = Math.round(canvas.width * ratio);
-
       canvas._loaded = true;
       canvas._originalSrc = src;
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-      // delay so layout is complete before measuring position
       setTimeout(() => {
         const r = canvas.getBoundingClientRect();
         const absX = r.left + window.scrollX + r.width / 2;
@@ -256,17 +252,20 @@ document.addEventListener('mousemove', e => {
     updateDisplay();
   }
 
-  document.querySelectorAll('.distort-canvas').forEach(canvas => {
-    const r = canvas.getBoundingClientRect();
-    const inside = e.clientX >= r.left && e.clientX <= r.right &&
-                   e.clientY >= r.top  && e.clientY <= r.bottom;
-    if (inside && !insideCanvases.has(canvas)) {
-      insideCanvases.add(canvas);
-      const damage = getDamageAt(e.clientX, e.clientY);
-      if (damage >= IMAGE_DAMAGE_THRESHOLD) distortCanvas(canvas, damage);
-    }
-    if (!inside) insideCanvases.delete(canvas);
-  });
+  // throttle canvas distortion to max once per 500ms to avoid thrashing
+  const now = Date.now();
+  if (now - lastDistortTime > 500) {
+    lastDistortTime = now;
+    document.querySelectorAll('.distort-canvas').forEach(canvas => {
+      const r = canvas.getBoundingClientRect();
+      const inside = e.clientX >= r.left && e.clientX <= r.right &&
+                     e.clientY >= r.top  && e.clientY <= r.bottom;
+      if (inside) {
+        const damage = getDamageAt(e.clientX, e.clientY);
+        if (damage >= IMAGE_DAMAGE_THRESHOLD) distortCanvas(canvas, damage);
+      }
+    });
+  }
 });
 
 // ---- Reset ----
@@ -288,7 +287,6 @@ async function resetArchive() {
 
 document.addEventListener('contentLoaded', () => {
   initSocket();
-  // keep Render warm
   setInterval(() => {
     fetch('https://dukhtar-server.onrender.com/health').catch(() => {});
   }, 4 * 60 * 1000);

@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>duktar — photographs</title>
+    <link rel="stylesheet" href="ds.css" />
+    <style>
+      #gallery-wrapper {
+        position: relative;
+        min-height: 100vh;
+        padding: 0;
+      }
+
+      #gallery-header {
+        background: #1c1208;
+        border-bottom: 2px solid #3b2a1a;
+        padding: 14px 14px 10px;
+        position: relative;
+        z-index: 10;
+      }
+
+      #gallery-title {
+        font-family: "Courier New", monospace;
+        font-size: 2rem;
+        font-weight: bold;
+        letter-spacing: 0.08em;
+        color: #e8dcc8;
+        text-transform: uppercase;
+        line-height: 1.1;
+        margin-bottom: 3px;
+      }
+
+      #gallery-subtitle {
+        font-family: "Courier New", monospace;
+        font-size: 0.72rem;
+        letter-spacing: 0.2em;
+        color: #a09080;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+      }
+
+      #gallery-meta {
+        border-top: 1px solid #3b2a1a;
+        padding-top: 6px;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      #gallery-meta span {
+        font-family: "Courier New", monospace;
+        font-size: 0.68rem;
+        letter-spacing: 0.1em;
+        color: #a09080;
+        text-transform: uppercase;
+      }
+
+      #gallery-field {
+        position: relative;
+        width: 100%;
+        min-height: calc(100vh - 80px);
+        overflow: hidden;
+      }
+
+      .photo-item {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .photo-item canvas {
+        display: block;
+        background: #2e1f12;
+        border: 1px solid #3b2a1a;
+      }
+
+      .photo-item .photo-caption {
+        font-family: "Courier New", monospace;
+        font-size: 0.58rem;
+        color: #a09080;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-top: 3px;
+        max-width: 100%;
+      }
+
+      #gallery-footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #e8dcc8;
+        border-top: 2px solid #c9bfad;
+        padding: 5px 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 100;
+      }
+
+      #gallery-footer span {
+        font-family: "Courier New", monospace;
+        font-size: 0.68rem;
+        letter-spacing: 0.08em;
+        color: #1c1208;
+        text-transform: uppercase;
+      }
+
+      #back-link {
+        font-family: "Courier New", monospace;
+        font-size: 0.68rem;
+        letter-spacing: 0.1em;
+        color: #1c1208;
+        text-transform: uppercase;
+        text-decoration: none;
+      }
+
+      #back-link:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body style="background: #1c1208; margin: 0; padding: 0">
+    <div id="gallery-wrapper">
+      <header id="gallery-header">
+        <div id="gallery-title">Photographs</div>
+        <div id="gallery-subtitle">Dukhtar, Dispossessed — Visual Holdings</div>
+        <div id="gallery-meta">
+          <span
+            ><a href="duktar.html" id="back-link">← Return to Archive</a></span
+          >
+          <span>Last Modified: <span id="mod-date">—</span></span>
+        </div>
+      </header>
+
+      <div id="gallery-field">
+        <!-- images placed by JS -->
+      </div>
+
+      <footer id="gallery-footer">
+        <span>Interactions: <span id="interaction-count">0</span></span>
+        <span>Readers Present: <span id="presence-count">—</span></span>
+        <span>duktar, dispossessed — copyright Anna M. Zimmer 2026</span>
+      </footer>
+    </div>
+
+    <script src="socket.io.min.js"></script>
+    <script src="distort-text.js"></script>
+    <script src="sketch2.js"></script>
+    <script>
+      // Gallery-specific layout — positions seeded, not random each load
+      const PHOTOS = [
+        {
+          src: "doc1.jpg",
+          caption: "Young Turki Girl of Kashgar — c.1891",
+          w: 260,
+          x: 60,
+          y: 40,
+          rot: -2,
+        },
+        {
+          src: "doc2.jpg",
+          caption: "Three Women in Skullcaps — c.1960",
+          w: 320,
+          x: 340,
+          y: 80,
+          rot: 1.5,
+        },
+        {
+          src: "doc3.jpg",
+          caption: "Delegate to the Pioneer Rally — 1929",
+          w: 240,
+          x: 700,
+          y: 30,
+          rot: -1,
+        },
+        {
+          src: "doc4.jpg",
+          caption: "October Emancipated the Eastern Woman — 1929",
+          w: 290,
+          x: 120,
+          y: 360,
+          rot: 2,
+        },
+        {
+          src: "doc5.jpg",
+          caption: "Types of Sart Women, Samarkand — c.1900",
+          w: 310,
+          x: 460,
+          y: 320,
+          rot: -1.5,
+        },
+        {
+          src: "doc6.jpg",
+          caption: "Survey Photograph, Turkestan Album — c.1871",
+          w: 270,
+          x: 780,
+          y: 280,
+          rot: 1,
+        },
+        {
+          src: "doc7.jpg",
+          caption: "Unnamed Subject, Dushanbe — c.1955",
+          w: 230,
+          x: 200,
+          y: 620,
+          rot: -2.5,
+        },
+        {
+          src: "doc8.jpg",
+          caption: "Street Scene, Samarkand — c.1905",
+          w: 350,
+          x: 530,
+          y: 580,
+          rot: 0.8,
+        },
+      ];
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const field = document.getElementById("gallery-field");
+
+        PHOTOS.forEach((photo, i) => {
+          const item = document.createElement("div");
+          item.className = "photo-item";
+          item.style.cssText = `
+      left: ${photo.x}px;
+      top: ${photo.y}px;
+      width: ${photo.w}px;
+      transform: rotate(${photo.rot}deg);
+    `;
+
+          const canvas = document.createElement("canvas");
+          canvas.className = "distort-canvas";
+          canvas.dataset.src = photo.src;
+          canvas.width = photo.w;
+          canvas.height = Math.round(photo.w * 0.75); // placeholder ratio, corrects on load
+          canvas.style.width = "100%";
+
+          // correct aspect ratio on image load
+          const img = new Image();
+          img.onload = () => {
+            const ratio = img.naturalHeight / img.naturalWidth;
+            canvas.height = Math.round(photo.w * ratio);
+            const ctx = canvas.getContext("2d");
+            canvas._loaded = true;
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          };
+          img.onerror = () => {
+            canvas._loaded = true;
+            const ctx = canvas.getContext("2d");
+            ctx.fillStyle = "#2e1f12";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#a09080";
+            ctx.font = "10px Courier New";
+            ctx.fillText(photo.src, 8, canvas.height / 2);
+          };
+          img.src = photo.src;
+
+          const caption = document.createElement("div");
+          caption.className = "photo-caption";
+          caption.textContent = photo.caption;
+
+          item.appendChild(canvas);
+          item.appendChild(caption);
+          field.appendChild(item);
+        });
+
+        // set field height to contain all items
+        const maxBottom = Math.max(...PHOTOS.map((p) => p.y + 400));
+        field.style.minHeight = maxBottom + 100 + "px";
+      });
+    </script>
+  </body>
+</html>

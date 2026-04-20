@@ -12,12 +12,20 @@ async function loadContent() {
   }
 
   // randomize main image
-  if (c.images && c.images.length) {
+if (c.images && c.images.length) {
     const pick = c.images[Math.floor(Math.random() * c.images.length)];
     const canvas = document.getElementById('main-canvas');
     const caption = document.getElementById('main-caption');
-    if (canvas) canvas.dataset.src = pick.src;
     if (caption) caption.textContent = pick.caption;
+    if (canvas) {
+      canvas.dataset.src = pick.src;
+      const img = new Image();
+      img.onload = () => {
+        const ratio = img.naturalHeight / img.naturalWidth;
+        canvas.height = Math.round(canvas.width * ratio);
+      };
+      img.src = pick.src;
+    }
   }
 
   // archive entries

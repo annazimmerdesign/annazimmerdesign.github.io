@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>duktar — subject file</title>
+    <link rel="stylesheet" href="ds.css" />
+    <style>
+      body {
+        background: #1c1208;
+        margin: 0;
+        padding: 0;
+      }
+
+      #dossier-header {
+        background: #1c1208;
+        border-bottom: 2px solid #3b2a1a;
+        padding: 14px 14px 10px;
+        position: relative;
+        z-index: 10;
+      }
+
+      #dossier-title {
+        font-family: "Courier New", monospace;
+        font-size: 2rem;
+        font-weight: bold;
+        letter-spacing: 0.08em;
+        color: #e8dcc8;
+        text-transform: uppercase;
+        line-height: 1.1;
+        margin-bottom: 3px;
+      }
+
+      #dossier-subtitle {
+        font-family: "Courier New", monospace;
+        font-size: 0.72rem;
+        letter-spacing: 0.2em;
+        color: #a09080;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+      }
+
+      #dossier-meta {
+        border-top: 1px solid #3b2a1a;
+        padding-top: 6px;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      #dossier-meta span,
+      #dossier-meta a {
+        font-family: "Courier New", monospace;
+        font-size: 0.68rem;
+        letter-spacing: 0.1em;
+        color: #a09080;
+        text-transform: uppercase;
+        text-decoration: none;
+      }
+
+      #dossier-meta a:hover {
+        text-decoration: underline;
+      }
+
+      #constellation-field {
+        position: relative;
+        width: 100%;
+        min-height: calc(100vh - 80px);
+        padding-bottom: 80px;
+      }
+
+      /* SVG connection lines sit behind everything */
+      #connection-lines {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .doc-node {
+        position: absolute;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .doc-node canvas {
+        display: block;
+        background: #2e1f12;
+        border: 1px solid #3b2a1a;
+      }
+
+      .doc-node .node-label {
+        font-family: "Courier New", monospace;
+        font-size: 0.58rem;
+        color: #a09080;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-top: 4px;
+      }
+
+      .doc-node .node-id {
+        font-family: "Courier New", monospace;
+        font-size: 0.52rem;
+        color: #5a4a3a;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+      }
+
+      /* Text nodes — no image, just a label block */
+      .text-node {
+        position: absolute;
+        z-index: 2;
+        border: 1px solid #3b2a1a;
+        background: #231810;
+        padding: 6px 10px;
+        max-width: 200px;
+      }
+
+      .text-node .node-id {
+        font-family: "Courier New", monospace;
+        font-size: 0.52rem;
+        color: #5a4a3a;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin-bottom: 3px;
+      }
+
+      .text-node .node-text {
+        font-family: "Courier New", monospace;
+        font-size: 0.65rem;
+        color: #c9bfad;
+        letter-spacing: 0.03em;
+        line-height: 1.5;
+      }
+
+      .text-node .node-text.redacted {
+        color: #3b2a1a;
+        background: #3b2a1a;
+        user-select: none;
+      }
+
+      #dossier-footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #e8dcc8;
+        border-top: 2px solid #c9bfad;
+        padding: 5px 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 100;
+      }
+
+      #dossier-footer span {
+        font-family: "Courier New", monospace;
+        font-size: 0.68rem;
+        letter-spacing: 0.08em;
+        color: #1c1208;
+        text-transform: uppercase;
+      }
+    </style>
+  </head>
+  <body>
+    <header id="dossier-header">
+      <div id="dossier-title">Subject File</div>
+      <div id="dossier-subtitle">Dukhtar, Dispossessed — Personal Archive</div>
+      <div id="dossier-meta">
+        <span><a href="duktar.html">← Return to Archive</a></span>
+        <span>Classification: Unrestricted — Provenance: Incomplete</span>
+        <span>Last Modified: <span id="mod-date">—</span></span>
+      </div>
+    </header>
+
+    <div id="constellation-field">
+      <!-- SVG connection lines -->
+      <svg id="connection-lines" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker
+            id="dot"
+            viewBox="0 0 4 4"
+            refX="2"
+            refY="2"
+            markerWidth="4"
+            markerHeight="4"
+          >
+            <circle cx="2" cy="2" r="1.5" fill="#3b2a1a" />
+          </marker>
+        </defs>
+        <!-- connections drawn between node centers -->
+        <!-- vaccination → birthcertif -->
+        <line
+          class="conn-line"
+          data-from="vaccination"
+          data-to="birthcertif"
+          stroke="#3b2a1a"
+          stroke-width="1"
+          stroke-dasharray="3 4"
+          marker-start="url(#dot)"
+          marker-end="url(#dot)"
+        />
+        <!-- birthcertif → adoption-file -->
+        <line
+          class="conn-line"
+          data-from="birthcertif"
+          data-to="adoption-file"
+          stroke="#3b2a1a"
+          stroke-width="1"
+          stroke-dasharray="3 4"
+          marker-start="url(#dot)"
+          marker-end="url(#dot)"
+        />
+        <!-- adoption-file → passport -->
+        <line
+          class="conn-line"
+          data-from="adoption-file"
+          data-to="passport"
+          stroke="#5a4a3a"
+          stroke-width="1"
+          stroke-dasharray="2 5"
+          marker-start="url(#dot)"
+          marker-end="url(#dot)"
+        />
+        <!-- birthcertif → medical -->
+        <line
+          class="conn-line"
+          data-from="birthcertif"
+          data-to="medical"
+          stroke="#3b2a1a"
+          stroke-width="1"
+          stroke-dasharray="3 4"
+          marker-start="url(#dot)"
+          marker-end="url(#dot)"
+        />
+        <!-- adoption-file → court -->
+        <line
+          class="conn-line"
+          data-from="adoption-file"
+          data-to="court"
+          stroke="#3b2a1a"
+          stroke-width="1"
+          stroke-dasharray="3 4"
+          marker-start="url(#dot)"
+          marker-end="url(#dot)"
+        />
+        <!-- court → missing -->
+        <line
+          class="conn-line"
+          data-from="court"
+          data-to="missing"
+          stroke="#2a1e14"
+          stroke-width="1"
+          stroke-dasharray="1 6"
+          marker-start="url(#dot)"
+          marker-end="url(#dot)"
+        />
+        <!-- passport → note1 -->
+        <line
+          class="conn-line"
+          data-from="passport"
+          data-to="note1"
+          stroke="#5a4a3a"
+          stroke-width="1"
+          stroke-dasharray="2 5"
+          marker-start="url(#dot)"
+          marker-end="url(#dot)"
+        />
+      </svg>
+
+      <!-- Image nodes -->
+      <div
+        class="doc-node"
+        id="node-vaccination"
+        style="left: 80px; top: 60px; width: 200px; transform: rotate(-1.5deg)"
+      >
+        <div class="node-id">DOC-001 — Medical</div>
+        <canvas
+          class="distort-canvas"
+          data-src="vaccination.jpg"
+          width="200"
+          height="150"
+        ></canvas>
+        <div class="node-label">Vaccination Record — undated</div>
+      </div>
+
+      <div
+        class="doc-node"
+        id="node-birthcertif"
+        style="left: 360px; top: 40px; width: 240px; transform: rotate(1deg)"
+      >
+        <div class="node-id">DOC-002 — Civil Registry</div>
+        <canvas
+          class="distort-canvas"
+          data-src="russian-birthcertif.jpg"
+          width="240"
+          height="180"
+        ></canvas>
+        <div class="node-label">Birth Certificate (Russian) — 1997</div>
+      </div>
+
+      <div
+        class="doc-node"
+        id="node-adoption-file"
+        style="
+          left: 660px;
+          top: 100px;
+          width: 220px;
+          transform: rotate(-0.8deg);
+        "
+      >
+        <div class="node-id">DOC-003 — State</div>
+        <canvas
+          class="distort-canvas"
+          data-src="adoption-file.jpg"
+          width="220"
+          height="165"
+        ></canvas>
+        <div class="node-label">Adoption Decree No. 447 — 1997</div>
+      </div>
+
+      <div
+        class="doc-node"
+        id="node-passport"
+        style="left: 900px; top: 60px; width: 180px; transform: rotate(2deg)"
+      >
+        <div class="node-id">DOC-004 — Identity</div>
+        <canvas
+          class="distort-canvas"
+          data-src="passport.jpg"
+          width="180"
+          height="135"
+        ></canvas>
+        <div class="node-label">Passport Application — 1997</div>
+      </div>
+
+      <div
+        class="doc-node"
+        id="node-medical"
+        style="left: 140px; top: 360px; width: 210px; transform: rotate(1.8deg)"
+      >
+        <div class="node-id">DOC-005 — Medical</div>
+        <canvas
+          class="distort-canvas"
+          data-src="medical-clearance.jpg"
+          width="210"
+          height="158"
+        ></canvas>
+        <div class="node-label">Medical Clearance Form 12-B — 1997</div>
+      </div>
+
+      <div
+        class="doc-node"
+        id="node-court"
+        style="
+          left: 500px;
+          top: 380px;
+          width: 230px;
+          transform: rotate(-1.2deg);
+        "
+      >
+        <div class="node-id">DOC-006 — Legal</div>
+        <canvas
+          class="distort-canvas"
+          data-src="court-order.jpg"
+          width="230"
+          height="172"
+        ></canvas>
+        <div class="node-label">Regional Court Order — 1997</div>
+      </div>
+
+      <!-- Text nodes -->
+      <div
+        class="text-node"
+        id="node-missing"
+        style="left: 820px; top: 380px; transform: rotate(1.5deg)"
+      >
+        <div class="node-id">DOC-007 — Origin</div>
+        <div class="node-text">
+          Birth record not located. Cross-reference with regional civil registry
+          yields three possible matches, none conclusive. Soviet-era
+          reorganization of Dushanbe records complicates search.
+        </div>
+      </div>
+
+      <div
+        class="text-node"
+        id="node-note1"
+        style="left: 940px; top: 260px; transform: rotate(-1deg)"
+      >
+        <div class="node-id">Researcher Note</div>
+        <div class="node-text">
+          Name of guardian recorded as — [illegible]. Origin:
+          <span class="node-text redacted">████████</span>. Age estimated.
+        </div>
+      </div>
+
+      <div
+        class="text-node"
+        id="node-custodian"
+        style="left: 300px; top: 580px; transform: rotate(0.8deg)"
+      >
+        <div class="node-id">Chain of Custody</div>
+        <div class="node-text">
+          Custodian: Unknown. Transferred: 1997. Chain: Incomplete. The archive
+          holds what the archive was given.
+        </div>
+      </div>
+    </div>
+
+    <footer id="dossier-footer">
+      <span>Interactions: <span id="interaction-count">0</span></span>
+      <span>Readers Present: <span id="presence-count">—</span></span>
+      <span>duktar, dispossessed — copyright Anna M. Zimmer 2026</span>
+    </footer>
+
+    <script src="socket.io.min.js"></script>
+    <script src="distort-text.js"></script>
+    <script src="sketch2.js"></script>
+    <script>
+      // Draw SVG connection lines between node centers after layout
+      function drawConnections() {
+        const field = document.getElementById("constellation-field");
+        const svg = document.getElementById("connection-lines");
+        svg.style.height = field.scrollHeight + "px";
+
+        document.querySelectorAll(".conn-line").forEach((line) => {
+          const fromId = "node-" + line.dataset.from;
+          const toId = "node-" + line.dataset.to;
+          const fromEl = document.getElementById(fromId);
+          const toEl = document.getElementById(toId);
+          if (!fromEl || !toEl) return;
+
+          const fieldRect = field.getBoundingClientRect();
+          const fromRect = fromEl.getBoundingClientRect();
+          const toRect = toEl.getBoundingClientRect();
+
+          const x1 = fromRect.left - fieldRect.left + fromRect.width / 2;
+          const y1 = fromRect.top - fieldRect.top + fromRect.height / 2;
+          const x2 = toRect.left - fieldRect.left + toRect.width / 2;
+          const y2 = toRect.top - fieldRect.top + toRect.height / 2;
+
+          line.setAttribute("x1", x1);
+          line.setAttribute("y1", y1);
+          line.setAttribute("x2", x2);
+          line.setAttribute("y2", y2);
+        });
+      }
+
+      // Init canvases for dossier (sketch2 handles distort-canvas but needs images loaded)
+      document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll(".distort-canvas").forEach((canvas) => {
+          const src = canvas.dataset.src;
+          const img = new Image();
+          img.onload = () => {
+            const ratio = img.naturalHeight / img.naturalWidth;
+            canvas.height = Math.round(canvas.width * ratio);
+            canvas._loaded = true;
+            canvas
+              .getContext("2d")
+              .drawImage(img, 0, 0, canvas.width, canvas.height);
+          };
+          img.onerror = () => {
+            canvas._loaded = true;
+            const ctx = canvas.getContext("2d");
+            ctx.fillStyle = "#2e1f12";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#5a4a3a";
+            ctx.font = "10px Courier New";
+            ctx.fillText(src, 8, canvas.height / 2);
+          };
+          img.src = src;
+        });
+
+        setTimeout(drawConnections, 200);
+        window.addEventListener("resize", drawConnections);
+
+        // set field height
+        const maxBottom = 700;
+        document.getElementById("constellation-field").style.minHeight =
+          maxBottom + "px";
+      });
+    </script>
+  </body>
+</html>

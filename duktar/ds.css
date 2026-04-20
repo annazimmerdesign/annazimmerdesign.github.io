@@ -4,11 +4,25 @@
   box-sizing: border-box;
 }
 
+@font-face {
+  font-family: 'Anthony';
+  src: url('web-fonts/Anthony.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'ApfelGrotezk';
+  src: url('web-fonts/ApfelGrotezk-Regular.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+}
+
 html, body {
   width: 100%;
   height: 100%;
   background: #1c1208;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: 'ApfelGrotezk', Georgia, serif;
   color: #c9bfad;
   font-size: 14px;
   line-height: 1.5;
@@ -31,7 +45,7 @@ html, body {
 }
 
 #site-title {
-  font-family: "Courier New", monospace;
+  font-family: 'Anthony', "Courier New", monospace;
   font-size: 2rem;
   font-weight: bold;
   letter-spacing: 0.08em;
@@ -354,4 +368,14 @@ html, body {
 #reset-btn:hover {
   background: #1c1208;
   color: #e8dcc8;
+}
+
+.nav-featured {
+  color: #e8dcc8 !important;
+  background: #3b2a1a;
+}
+
+.nav-featured:hover {
+  background: #e8dcc8 !important;
+  color: #1c1208 !important;
 }

@@ -632,5 +632,11 @@
       setTimeout(drawConnections, 400);
       window.addEventListener("resize", drawConnections);
     </script>
+    <script>
+      // fire contentLoaded manually since content-loader.js isn't used here
+      document.addEventListener("DOMContentLoaded", () => {
+        document.dispatchEvent(new Event("contentLoaded"));
+      });
+    </script>
   </body>
 </html>

@@ -170,15 +170,21 @@ function initCanvases(saved) {
     img.onload = () => {
       canvas._loaded = true;
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      const r = canvas.getBoundingClientRect();
-      const damage = getDamageAt(r.left + r.width / 2, r.top + r.height / 2);
+      // use offsetTop/offsetLeft instead of getBoundingClientRect
+      // so position is correct even before scroll/paint
+      const absX = canvas.offsetLeft + canvas.offsetWidth / 2;
+      const absY = canvas.offsetTop + canvas.offsetHeight / 2;
+      const gx = Math.floor((absX / document.body.scrollWidth) * GRID_W);
+      const gy = Math.floor((absY / document.body.scrollHeight) * GRID_H);
+      const idx = Math.min(GRID_H - 1, gy) * GRID_W + Math.min(GRID_W - 1, gx);
+      const damage = damageMap[idx] || 0;
       if (damage >= IMAGE_DAMAGE_THRESHOLD) distortCanvas(canvas, damage);
     };
     img.onerror = () => {
       canvas._loaded = true;
-      ctx.fillStyle = '#b0a090';
+      ctx.fillStyle = '#2e1f12';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#3b2a1a';
+      ctx.fillStyle = '#5a4a3a';
       ctx.font = '11px Courier New';
       ctx.fillText(src || 'image not found', 10, canvas.height / 2);
     };

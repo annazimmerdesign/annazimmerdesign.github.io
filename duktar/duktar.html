@@ -137,12 +137,17 @@
           >interactions: <span id="interaction-count">0</span></span
         >
         <span class="footer-label"
+          >readers present: <span id="presence-count">—</span></span
+        >
+        <span class="footer-label"
           >duktar, dispossessed — copyright Anna M. Zimmer 2026</span
         >
         <!-- <button id="reset-btn" onclick="resetArchive()">reset</button> -->
       </footer>
     </div>
 
+    <!-- socket.io client — must load before sketch2.js -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <!-- content-loader must run before distort-text and sketch2 -->
     <script src="content-loader.js"></script>
     <script src="distort-text.js"></script>

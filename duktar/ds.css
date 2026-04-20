@@ -56,7 +56,7 @@ html, body {
 }
 
 #site-subtitle {
-  font-family: "Courier New", monospace;
+  font-family: 'Anthony', "Courier New", monospace;
   font-size: 0.72rem;
   letter-spacing: 0.2em;
   color: #a09080;
@@ -111,7 +111,7 @@ html, body {
 .nav-header {
   background: #e8dcc8;
   color: #1c1208;
-  font-family: "Courier New", monospace;
+  font-family: 'Anthony', "Courier New", monospace;
   font-size: 0.72rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -135,7 +135,7 @@ html, body {
 }
 
 .nav-list li a {
-  font-family: "Courier New", monospace;
+  font-family: 'Anthony', "Courier New", monospace;
   font-size: 0.7rem;
   color: #c9bfad;
   text-decoration: none;
@@ -157,7 +157,7 @@ html, body {
 }
 
 .entry-date {
-  font-family: "Courier New", monospace;
+  font-family: 'Anthony', "Courier New", monospace;
   font-size: 0.65rem;
   color: #a09080;
   letter-spacing: 0.06em;
@@ -207,7 +207,7 @@ html, body {
 }
 
 .meta-val {
-  font-family: "Courier New", monospace;
+  font-family: 'Anthony', "Courier New", monospace;
   font-size: 0.65rem;
   color: #c9bfad;
   letter-spacing: 0.04em;
@@ -227,7 +227,7 @@ html, body {
 }
 
 .log-date {
-  font-family: "Courier New", monospace;
+  font-family: 'Anthony', "Courier New", monospace;
   font-size: 0.65rem;
   color: #a09080;
   letter-spacing: 0.06em;
@@ -235,7 +235,7 @@ html, body {
 }
 
 .log-tag {
-  font-family: "Courier New", monospace;
+  font-family: 'Anthony', "Courier New", monospace;
   font-size: 0.6rem;
   color: #1c1208;
   background: #c9bfad;
@@ -270,7 +270,7 @@ html, body {
 }
 
 .doc-caption {
-  font-family: "Courier New", monospace;
+  font-family: 'Anthony', "Courier New", monospace;
   font-size: 0.62rem;
   color: #a09080;
   letter-spacing: 0.08em;
@@ -290,7 +290,7 @@ html, body {
 .inner-panel-header {
   background: #e8dcc8;
   color: #1c1208;
-  font-family: "Courier New", monospace;
+  font-family: 'Anthony', "Courier New", monospace;
   font-size: 0.65rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -302,7 +302,7 @@ html, body {
 .inner-panel-item {
   padding: 2px 7px;
   border-bottom: 1px solid #2e1f12;
-  font-family: "Courier New", monospace;
+  font-family: 'Anthony', "Courier New", monospace;
   font-size: 0.65rem;
   color: #c9bfad;
   letter-spacing: 0.04em;
@@ -325,7 +325,7 @@ html, body {
 }
 
 .site-notice p {
-  font-family: "Courier New", monospace;
+  font-family: 'Anthony', "Courier New", monospace;
   font-size: 0.72rem;
   color: #c9bfad;
   letter-spacing: 0.04em;
@@ -346,7 +346,7 @@ html, body {
 }
 
 .footer-label {
-  font-family: "Courier New", monospace;
+  font-family: 'Anthony', "Courier New", monospace;
   font-size: 0.68rem;
   letter-spacing: 0.08em;
   color: #1c1208;
@@ -354,7 +354,7 @@ html, body {
 }
 
 #reset-btn {
-  font-family: "Courier New", monospace;
+  font-family: 'Anthony', "Courier New", monospace;
   font-size: 0.68rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;

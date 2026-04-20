@@ -140,7 +140,7 @@ function distortCanvas(canvas, damage) {
     off.width = w; off.height = h;
     const octx = off.getContext('2d');
 
-    const passes = Math.round(damage * 40);
+    const passes = Math.round(damage * 20);
     const scale = Math.max(0.5, 1 - passes * 0.025);
 
     octx.drawImage(fresh, 0, 0, w * scale, h * scale);

@@ -1,7 +1,6 @@
 /**
  * sketch2.js — Dukhtar, Dispossessed
  * Live damage layer via Flask-SocketIO, Supabase as persistent fallback.
- * Change SOCKET_SERVER_URL to your PythonAnywhere URL when deploying.
  */
 
 const SOCKET_SERVER_URL = 'https://dukhtar-server.onrender.com';
@@ -25,7 +24,6 @@ let connectedClients = 0;
 let socketConnected = false;
 let lastMouseGrid = { x: -1, y: -1 };
 const insideCanvases = new Set();
-const canvasStates = {};
 
 // ---- Socket ----
 
@@ -33,10 +31,10 @@ let socket;
 
 function initSocket() {
   socket = io(SOCKET_SERVER_URL, {
-  transports: ['websocket', 'polling'],  
-  reconnectionAttempts: 5,
-  reconnectionDelay: 2000,
-});
+    transports: ['websocket', 'polling'],
+    reconnectionAttempts: 5,
+    reconnectionDelay: 2000,
+  });
 
   socket.on('connect', () => {
     socketConnected = true;
@@ -52,7 +50,7 @@ function initSocket() {
     if (data.damage_map) damageMap = new Float32Array(data.damage_map);
     interactions = data.interactions || 0;
     connectedClients = data.connected || 1;
-    initCanvases({});
+    initCanvases();
     updateDisplay();
   });
 
@@ -93,7 +91,7 @@ function initSocket() {
 async function loadFromSupabase() {
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/archive_state?id=eq.1&select=passes,damage_map,canvas1,canvas2,canvas3`,
+      `${SUPABASE_URL}/rest/v1/archive_state?id=eq.1&select=passes,damage_map`,
       { headers: SUPABASE_HEADERS }
     );
     const data = await res.json();
@@ -101,16 +99,12 @@ async function loadFromSupabase() {
       const row = data[0];
       interactions = row.passes || 0;
       if (row.damage_map) damageMap = new Float32Array(JSON.parse(row.damage_map));
-      const saved = {};
-      if (row.canvas1) saved[0] = row.canvas1;
-      if (row.canvas2) saved[1] = row.canvas2;
-      if (row.canvas3) saved[2] = row.canvas3;
-      initCanvases(saved);
+      initCanvases();
       updateDisplay();
     }
   } catch (e) {
     console.warn('Supabase fallback failed — starting fresh:', e);
-    initCanvases({});
+    initCanvases();
     updateDisplay();
   }
 }
@@ -131,67 +125,89 @@ function getDamageAt(clientX, clientY) {
 }
 
 // ---- Canvas distortion ----
+// Always redraws from original source image so degradation is
+// deterministic — same damage level always produces same result.
 
 function distortCanvas(canvas, damage) {
-  if (!canvas._loaded) return;
+  if (!canvas._loaded || !canvas._originalSrc) return;
   if (damage < IMAGE_DAMAGE_THRESHOLD) return;
-  const ctx = canvas.getContext('2d');
-  const w = canvas.width, h = canvas.height;
-  const off = document.createElement('canvas');
-  off.width = w; off.height = h;
-  const octx = off.getContext('2d');
-  const passes = Math.round(damage * 8);
-  const scale = Math.max(0.5, 1 - passes * 0.025);
-  octx.drawImage(canvas, 0, 0, w * scale, h * scale);
-  octx.drawImage(off, 0, 0, w * scale, h * scale, 0, 0, w, h);
-  const id = octx.getImageData(0, 0, w, h);
-  for (let i = 0; i < id.data.length; i += 4) {
-    const n = (Math.random() - 0.5) * passes * 1.2;
-    id.data[i] += n; id.data[i+1] += n; id.data[i+2] += n;
-  }
-  octx.putImageData(id, 0, 0);
-  const quality = Math.max(0.4, 1 - damage * 0.6);
-  const dataURL = off.toDataURL('image/jpeg', quality);
-  const img = new Image();
-  img.onload = () => {
+
+  const fresh = new Image();
+  fresh.onload = () => {
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    const off = document.createElement('canvas');
+    off.width = w; off.height = h;
+    const octx = off.getContext('2d');
+
+    const passes = Math.round(damage * 8);
+    const scale = Math.max(0.5, 1 - passes * 0.025);
+
+    octx.drawImage(fresh, 0, 0, w * scale, h * scale);
+    octx.drawImage(off, 0, 0, w * scale, h * scale, 0, 0, w, h);
+
+    // seeded noise — deterministic per damage level
+    const id = octx.getImageData(0, 0, w, h);
+    let seed = Math.floor(damage * 1000);
+    for (let i = 0; i < id.data.length; i += 4) {
+      seed = (seed * 9301 + 49297) % 233280;
+      const n = ((seed / 233280) - 0.5) * passes * 1.2;
+      id.data[i]   = Math.min(255, Math.max(0, id.data[i]   + n));
+      id.data[i+1] = Math.min(255, Math.max(0, id.data[i+1] + n));
+      id.data[i+2] = Math.min(255, Math.max(0, id.data[i+2] + n));
+    }
+    octx.putImageData(id, 0, 0);
+
+    const quality = Math.max(0.4, 1 - damage * 0.6);
     ctx.clearRect(0, 0, w, h);
-    ctx.drawImage(img, 0, 0, w, h);
-    canvasStates[canvas._index] = dataURL;
+    ctx.drawImage(off, 0, 0, w, h);
   };
-  img.src = dataURL;
+  fresh.src = canvas._originalSrc;
 }
 
-function initCanvases(saved) {
+// ---- Canvas init ----
+
+function initCanvases() {
   document.querySelectorAll('.distort-canvas').forEach((canvas, i) => {
     canvas._index = i;
     const ctx = canvas.getContext('2d');
     const src = canvas.dataset.src;
+    if (!src) return;
+
     const img = new Image();
     img.onload = () => {
-  canvas._loaded = true;
-  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-  setTimeout(() => {
-    const r = canvas.getBoundingClientRect();
-    const scrollX = window.scrollX || 0;
-    const scrollY = window.scrollY || 0;
-    const absX = r.left + scrollX + r.width / 2;
-    const absY = r.top + scrollY + r.height / 2;
-    const gx = Math.floor((absX / document.documentElement.scrollWidth) * GRID_W);
-    const gy = Math.floor((absY / document.documentElement.scrollHeight) * GRID_H);
-    const idx = Math.min(GRID_H-1, gy) * GRID_W + Math.min(GRID_W-1, gx);
-    const damage = damageMap[idx] || 0;
-    if (damage >= IMAGE_DAMAGE_THRESHOLD) distortCanvas(canvas, damage);
-  }, 300);
-};
+      // correct aspect ratio
+      const ratio = img.naturalHeight / img.naturalWidth;
+      canvas.height = Math.round(canvas.width * ratio);
+
+      canvas._loaded = true;
+      canvas._originalSrc = src;
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      // delay so layout is complete before measuring position
+      setTimeout(() => {
+        const r = canvas.getBoundingClientRect();
+        const absX = r.left + window.scrollX + r.width / 2;
+        const absY = r.top  + window.scrollY + r.height / 2;
+        const gx = Math.floor((absX / document.documentElement.scrollWidth)  * GRID_W);
+        const gy = Math.floor((absY / document.documentElement.scrollHeight) * GRID_H);
+        const idx = Math.min(GRID_H - 1, gy) * GRID_W + Math.min(GRID_W - 1, gx);
+        const damage = damageMap[idx] || 0;
+        if (damage >= IMAGE_DAMAGE_THRESHOLD) distortCanvas(canvas, damage);
+      }, 300);
+    };
+
     img.onerror = () => {
       canvas._loaded = true;
+      canvas._originalSrc = src;
       ctx.fillStyle = '#2e1f12';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = '#5a4a3a';
       ctx.font = '11px Courier New';
       ctx.fillText(src || 'image not found', 10, canvas.height / 2);
     };
-    img.src = saved[i] || src;
+
+    img.src = src;
   });
 }
 
@@ -226,7 +242,6 @@ document.addEventListener('mousemove', e => {
   if (socketConnected) {
     socket.emit('cursor_move', { gx, gy });
   } else {
-    // local fallback
     for (let dy = -BRUSH_RADIUS; dy <= BRUSH_RADIUS; dy++) {
       for (let dx = -BRUSH_RADIUS; dx <= BRUSH_RADIUS; dx++) {
         const dist = Math.sqrt(dx * dx + dy * dy);
@@ -234,7 +249,7 @@ document.addEventListener('mousemove', e => {
         const nx = gx + dx, ny = gy + dy;
         if (nx < 0 || nx >= GRID_W || ny < 0 || ny >= GRID_H) continue;
         const idx = ny * GRID_W + nx;
-        damageMap[idx] = Math.min(1.0, damageMap[idx] + 0.12 * (1 - dist / BRUSH_RADIUS));
+        damageMap[idx] = Math.min(1.0, damageMap[idx] + 0.04 * (1 - dist / BRUSH_RADIUS));
       }
     }
     interactions++;
@@ -263,7 +278,7 @@ async function resetArchive() {
     await fetch(`${SUPABASE_URL}/rest/v1/archive_state?id=eq.1`, {
       method: 'PATCH',
       headers: SUPABASE_HEADERS,
-      body: JSON.stringify({ passes: 0, damage_map: null, canvas1: null, canvas2: null, canvas3: null })
+      body: JSON.stringify({ passes: 0, damage_map: null })
     });
   } catch (e) { console.warn('Reset failed:', e); }
   location.reload();
@@ -273,11 +288,8 @@ async function resetArchive() {
 
 document.addEventListener('contentLoaded', () => {
   initSocket();
-  // socket 'init' event handles canvas setup once connected
-  // connect_error falls back to Supabase
-  // Keep Render instance warm
-setInterval(() => {
-  fetch('https://dukhtar-server.onrender.com/health')
-    .catch(() => {});
-}, 4 * 60 * 1000);
+  // keep Render warm
+  setInterval(() => {
+    fetch('https://dukhtar-server.onrender.com/health').catch(() => {});
+  }, 4 * 60 * 1000);
 });

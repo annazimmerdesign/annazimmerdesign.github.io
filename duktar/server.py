@@ -154,7 +154,7 @@ def on_connect():
         'connected': connected_clients
     })
     # Tell everyone else someone joined
-    emit('presence', {'connected': connected_clients}, broadcast=True, include_self=False)
+    socketio.emit('presence', {'connected': connected_clients})
     print(f'Client connected. Total: {connected_clients}')
 
 

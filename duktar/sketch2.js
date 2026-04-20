@@ -225,7 +225,7 @@ document.addEventListener('mousemove', e => {
         const nx = gx + dx, ny = gy + dy;
         if (nx < 0 || nx >= GRID_W || ny < 0 || ny >= GRID_H) continue;
         const idx = ny * GRID_W + nx;
-        damageMap[idx] = Math.min(1.0, damageMap[idx] + 0.08 * (1 - dist / BRUSH_RADIUS));
+        damageMap[idx] = Math.min(1.0, damageMap[idx] + 0.12 * (1 - dist / BRUSH_RADIUS));
       }
     }
     interactions++;

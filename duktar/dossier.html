@@ -5,10 +5,20 @@
     <title>duktar — subject file</title>
     <link rel="stylesheet" href="ds.css" />
     <style>
+      @font-face {
+        font-family: "Anthony";
+        src: url("web-fonts/Anthony.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "ApfelGrotezk";
+        src: url("web-fonts/ApfelGrotezk-Regular.woff2") format("woff2");
+      }
+
       body {
         background: #1c1208;
         margin: 0;
         padding: 0;
+        font-family: "ApfelGrotezk", Georgia, serif;
       }
 
       #dossier-header {
@@ -18,7 +28,6 @@
         position: relative;
         z-index: 10;
       }
-
       #dossier-title {
         font-family: "Anthony", "Courier New", monospace;
         font-size: 2rem;
@@ -29,23 +38,20 @@
         line-height: 1.1;
         margin-bottom: 3px;
       }
-
       #dossier-subtitle {
-        font-family: "Anthony", "Courier New", monospace;
+        font-family: "ApfelGrotezk", Georgia, serif;
         font-size: 0.72rem;
         letter-spacing: 0.2em;
         color: #a09080;
         text-transform: uppercase;
         margin-bottom: 10px;
       }
-
       #dossier-meta {
         border-top: 1px solid #3b2a1a;
         padding-top: 6px;
         display: flex;
         justify-content: space-between;
       }
-
       #dossier-meta span,
       #dossier-meta a {
         font-family: "ApfelGrotezk", Georgia, serif;
@@ -55,7 +61,6 @@
         text-transform: uppercase;
         text-decoration: none;
       }
-
       #dossier-meta a:hover {
         text-decoration: underline;
       }
@@ -63,11 +68,9 @@
       #constellation-field {
         position: relative;
         width: 100%;
-        min-height: calc(100vh - 80px);
-        padding-bottom: 80px;
+        min-height: 1800px;
+        padding-bottom: 100px;
       }
-
-      /* SVG connection lines sit behind everything */
       #connection-lines {
         position: absolute;
         top: 0;
@@ -77,20 +80,17 @@
         pointer-events: none;
         z-index: 0;
       }
-
       .doc-node {
         position: absolute;
         z-index: 2;
         display: flex;
         flex-direction: column;
       }
-
       .doc-node canvas {
         display: block;
         background: #2e1f12;
         border: 1px solid #3b2a1a;
       }
-
       .doc-node .node-label {
         font-family: "ApfelGrotezk", Georgia, serif;
         font-size: 0.58rem;
@@ -99,7 +99,6 @@
         text-transform: uppercase;
         margin-top: 4px;
       }
-
       .doc-node .node-id {
         font-family: "ApfelGrotezk", Georgia, serif;
         font-size: 0.52rem;
@@ -108,8 +107,6 @@
         text-transform: uppercase;
         margin-bottom: 2px;
       }
-
-      /* Text nodes — no image, just a label block */
       .text-node {
         position: absolute;
         z-index: 2;
@@ -118,7 +115,6 @@
         padding: 6px 10px;
         max-width: 200px;
       }
-
       .text-node .node-id {
         font-family: "ApfelGrotezk", Georgia, serif;
         font-size: 0.52rem;
@@ -127,7 +123,6 @@
         text-transform: uppercase;
         margin-bottom: 3px;
       }
-
       .text-node .node-text {
         font-family: "ApfelGrotezk", Georgia, serif;
         font-size: 0.65rem;
@@ -135,13 +130,11 @@
         letter-spacing: 0.03em;
         line-height: 1.5;
       }
-
-      .text-node .node-text.redacted {
+      .redacted {
         color: #3b2a1a;
         background: #3b2a1a;
         user-select: none;
       }
-
       #dossier-footer {
         position: fixed;
         bottom: 0;
@@ -155,7 +148,6 @@
         align-items: center;
         z-index: 100;
       }
-
       #dossier-footer span {
         font-family: "ApfelGrotezk", Georgia, serif;
         font-size: 0.68rem;
@@ -177,7 +169,6 @@
     </header>
 
     <div id="constellation-field">
-      <!-- SVG connection lines -->
       <svg id="connection-lines" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <marker
@@ -191,78 +182,140 @@
             <circle cx="2" cy="2" r="1.5" fill="#3b2a1a" />
           </marker>
         </defs>
-        <!-- connections drawn between node centers -->
-        <!-- vaccination → birthcertif -->
         <line
           class="conn-line"
-          data-from="vaccination"
-          data-to="birthcertif"
+          data-from="n1"
+          data-to="n2"
           stroke="#3b2a1a"
           stroke-width="1"
           stroke-dasharray="3 4"
           marker-start="url(#dot)"
           marker-end="url(#dot)"
         />
-        <!-- birthcertif → adoption-file -->
         <line
           class="conn-line"
-          data-from="birthcertif"
-          data-to="adoption-file"
+          data-from="n2"
+          data-to="n3"
           stroke="#3b2a1a"
           stroke-width="1"
           stroke-dasharray="3 4"
           marker-start="url(#dot)"
           marker-end="url(#dot)"
         />
-        <!-- adoption-file → passport -->
         <line
           class="conn-line"
-          data-from="adoption-file"
-          data-to="passport"
+          data-from="n3"
+          data-to="n4"
           stroke="#5a4a3a"
           stroke-width="1"
           stroke-dasharray="2 5"
           marker-start="url(#dot)"
           marker-end="url(#dot)"
         />
-        <!-- birthcertif → medical -->
         <line
           class="conn-line"
-          data-from="birthcertif"
-          data-to="medical"
+          data-from="n2"
+          data-to="n5"
           stroke="#3b2a1a"
           stroke-width="1"
           stroke-dasharray="3 4"
           marker-start="url(#dot)"
           marker-end="url(#dot)"
         />
-        <!-- adoption-file → court -->
         <line
           class="conn-line"
-          data-from="adoption-file"
-          data-to="court"
+          data-from="n3"
+          data-to="n6"
           stroke="#3b2a1a"
           stroke-width="1"
           stroke-dasharray="3 4"
           marker-start="url(#dot)"
           marker-end="url(#dot)"
         />
-        <!-- court → missing -->
         <line
           class="conn-line"
-          data-from="court"
-          data-to="missing"
+          data-from="n5"
+          data-to="n7"
           stroke="#2a1e14"
           stroke-width="1"
           stroke-dasharray="1 6"
           marker-start="url(#dot)"
           marker-end="url(#dot)"
         />
-        <!-- passport → note1 -->
         <line
           class="conn-line"
-          data-from="passport"
-          data-to="note1"
+          data-from="n6"
+          data-to="n8"
+          stroke="#3b2a1a"
+          stroke-width="1"
+          stroke-dasharray="3 4"
+          marker-start="url(#dot)"
+          marker-end="url(#dot)"
+        />
+        <line
+          class="conn-line"
+          data-from="n4"
+          data-to="n9"
+          stroke="#5a4a3a"
+          stroke-width="1"
+          stroke-dasharray="2 5"
+          marker-start="url(#dot)"
+          marker-end="url(#dot)"
+        />
+        <line
+          class="conn-line"
+          data-from="n7"
+          data-to="n10"
+          stroke="#2a1e14"
+          stroke-width="1"
+          stroke-dasharray="1 6"
+          marker-start="url(#dot)"
+          marker-end="url(#dot)"
+        />
+        <line
+          class="conn-line"
+          data-from="n8"
+          data-to="n11"
+          stroke="#3b2a1a"
+          stroke-width="1"
+          stroke-dasharray="3 4"
+          marker-start="url(#dot)"
+          marker-end="url(#dot)"
+        />
+        <line
+          class="conn-line"
+          data-from="n9"
+          data-to="n12"
+          stroke="#5a4a3a"
+          stroke-width="1"
+          stroke-dasharray="2 5"
+          marker-start="url(#dot)"
+          marker-end="url(#dot)"
+        />
+        <line
+          class="conn-line"
+          data-from="n10"
+          data-to="n13"
+          stroke="#2a1e14"
+          stroke-width="1"
+          stroke-dasharray="1 6"
+          marker-start="url(#dot)"
+          marker-end="url(#dot)"
+        />
+        <line
+          class="conn-line"
+          data-from="n11"
+          data-to="n14"
+          stroke="#3b2a1a"
+          stroke-width="1"
+          stroke-dasharray="3 4"
+          marker-start="url(#dot)"
+          marker-end="url(#dot)"
+        />
+        <line
+          class="conn-line"
+          data-from="n12"
+          data-to="n15"
           stroke="#5a4a3a"
           stroke-width="1"
           stroke-dasharray="2 5"
@@ -271,132 +324,275 @@
         />
       </svg>
 
-      <!-- Image nodes -->
+      <!-- Row 1 -->
       <div
         class="doc-node"
-        id="node-vaccination"
-        style="left: 60px; top: 60px; width: 280px; transform: rotate(-0.6deg)"
+        id="node-n1"
+        style="left: 60px; top: 60px; width: 260px; transform: rotate(-0.5deg)"
       >
-        <div class="node-id">DOC-001 — Medical</div>
+        <div class="node-id">DOC-001</div>
         <canvas
           class="distort-canvas"
-          data-src="vaccination.jpg"
-          width="280"
-          height="210"
-        ></canvas>
-        <div class="node-label">Vaccination Record — undated</div>
-      </div>
-
-      <div
-        class="doc-node"
-        id="node-birthcertif"
-        style="left: 380px; top: 40px; width: 320px; transform: rotate(0.4deg)"
-      >
-        <div class="node-id">DOC-002 — Civil Registry</div>
-        <canvas
-          class="distort-canvas"
-          data-src="russian-birthcertif.jpg"
-          width="320"
-          height="240"
-        ></canvas>
-        <div class="node-label">Birth Certificate (Russian) — 1997</div>
-      </div>
-
-      <div
-        class="doc-node"
-        id="node-adoption-file"
-        style="left: 740px; top: 80px; width: 300px; transform: rotate(-0.3deg)"
-      >
-        <div class="node-id">DOC-003 — State</div>
-        <canvas
-          class="distort-canvas"
-          data-src="adoption-file.jpg"
-          width="300"
-          height="225"
-        ></canvas>
-        <div class="node-label">Adoption Decree No. 447 — 1997</div>
-      </div>
-
-      <div
-        class="doc-node"
-        id="node-passport"
-        style="left: 1060px; top: 50px; width: 260px; transform: rotate(0.7deg)"
-      >
-        <div class="node-id">DOC-004 — Identity</div>
-        <canvas
-          class="distort-canvas"
-          data-src="passport.jpg"
+          data-src="subject1.jpg"
           width="260"
           height="195"
         ></canvas>
-        <div class="node-label">Passport Application — 1997</div>
+        <div class="node-label">Subject Document 1</div>
       </div>
-
       <div
         class="doc-node"
-        id="node-medical"
-        style="left: 100px; top: 420px; width: 290px; transform: rotate(0.5deg)"
+        id="node-n2"
+        style="left: 370px; top: 40px; width: 300px; transform: rotate(0.4deg)"
       >
-        <div class="node-id">DOC-005 — Medical</div>
+        <div class="node-id">DOC-002</div>
         <canvas
           class="distort-canvas"
-          data-src="medical-clearance.jpg"
-          width="290"
-          height="218"
+          data-src="subject2.jpg"
+          width="300"
+          height="225"
         ></canvas>
-        <div class="node-label">Medical Clearance Form 12-B — 1997</div>
+        <div class="node-label">Subject Document 2</div>
       </div>
-
       <div
         class="doc-node"
-        id="node-court"
+        id="node-n3"
+        style="left: 720px; top: 70px; width: 280px; transform: rotate(-0.3deg)"
+      >
+        <div class="node-id">DOC-003</div>
+        <canvas
+          class="distort-canvas"
+          data-src="subject3.jpg"
+          width="280"
+          height="210"
+        ></canvas>
+        <div class="node-label">Subject Document 3</div>
+      </div>
+      <div
+        class="doc-node"
+        id="node-n4"
+        style="left: 1050px; top: 50px; width: 250px; transform: rotate(0.6deg)"
+      >
+        <div class="node-id">DOC-004</div>
+        <canvas
+          class="distort-canvas"
+          data-src="subject4.jpg"
+          width="250"
+          height="188"
+        ></canvas>
+        <div class="node-label">Subject Document 4</div>
+      </div>
+
+      <!-- Row 2 -->
+      <div
+        class="doc-node"
+        id="node-n5"
+        style="left: 100px; top: 420px; width: 270px; transform: rotate(0.5deg)"
+      >
+        <div class="node-id">DOC-005</div>
+        <canvas
+          class="distort-canvas"
+          data-src="subject5.jpg"
+          width="270"
+          height="202"
+        ></canvas>
+        <div class="node-label">Subject Document 5</div>
+      </div>
+      <div
+        class="doc-node"
+        id="node-n6"
         style="
-          left: 520px;
-          top: 440px;
-          width: 310px;
+          left: 430px;
+          top: 400px;
+          width: 290px;
           transform: rotate(-0.4deg);
         "
       >
-        <div class="node-id">DOC-006 — Legal</div>
+        <div class="node-id">DOC-006</div>
         <canvas
           class="distort-canvas"
-          data-src="court-order.jpg"
-          width="310"
-          height="232"
+          data-src="subject6.jpg"
+          width="290"
+          height="218"
         ></canvas>
-        <div class="node-label">Regional Court Order — 1997</div>
+        <div class="node-label">Subject Document 6</div>
+      </div>
+      <div
+        class="doc-node"
+        id="node-n7"
+        style="left: 780px; top: 380px; width: 260px; transform: rotate(0.3deg)"
+      >
+        <div class="node-id">DOC-007</div>
+        <canvas
+          class="distort-canvas"
+          data-src="subject7.jpg"
+          width="260"
+          height="195"
+        ></canvas>
+        <div class="node-label">Subject Document 7</div>
+      </div>
+      <div
+        class="doc-node"
+        id="node-n8"
+        style="
+          left: 1080px;
+          top: 410px;
+          width: 270px;
+          transform: rotate(-0.5deg);
+        "
+      >
+        <div class="node-id">DOC-008</div>
+        <canvas
+          class="distort-canvas"
+          data-src="subject8.jpg"
+          width="270"
+          height="202"
+        ></canvas>
+        <div class="node-label">Subject Document 8</div>
+      </div>
+
+      <!-- Row 3 -->
+      <div
+        class="doc-node"
+        id="node-n9"
+        style="left: 60px; top: 800px; width: 280px; transform: rotate(-0.4deg)"
+      >
+        <div class="node-id">DOC-009</div>
+        <canvas
+          class="distort-canvas"
+          data-src="subject9.jpg"
+          width="280"
+          height="210"
+        ></canvas>
+        <div class="node-label">Subject Document 9</div>
+      </div>
+      <div
+        class="doc-node"
+        id="node-n10"
+        style="left: 390px; top: 780px; width: 300px; transform: rotate(0.5deg)"
+      >
+        <div class="node-id">DOC-010</div>
+        <canvas
+          class="distort-canvas"
+          data-src="subject10.jpg"
+          width="300"
+          height="225"
+        ></canvas>
+        <div class="node-label">Subject Document 10</div>
+      </div>
+      <div
+        class="doc-node"
+        id="node-n11"
+        style="
+          left: 750px;
+          top: 810px;
+          width: 260px;
+          transform: rotate(-0.3deg);
+        "
+      >
+        <div class="node-id">DOC-011</div>
+        <canvas
+          class="distort-canvas"
+          data-src="subject11.jpg"
+          width="260"
+          height="195"
+        ></canvas>
+        <div class="node-label">Subject Document 11</div>
+      </div>
+      <div
+        class="doc-node"
+        id="node-n12"
+        style="
+          left: 1060px;
+          top: 790px;
+          width: 270px;
+          transform: rotate(0.4deg);
+        "
+      >
+        <div class="node-id">DOC-012</div>
+        <canvas
+          class="distort-canvas"
+          data-src="subject12.jpg"
+          width="270"
+          height="202"
+        ></canvas>
+        <div class="node-label">Subject Document 12</div>
+      </div>
+
+      <!-- Row 4 -->
+      <div
+        class="doc-node"
+        id="node-n13"
+        style="
+          left: 200px;
+          top: 1180px;
+          width: 290px;
+          transform: rotate(0.4deg);
+        "
+      >
+        <div class="node-id">DOC-013</div>
+        <canvas
+          class="distort-canvas"
+          data-src="subject13.jpg"
+          width="290"
+          height="218"
+        ></canvas>
+        <div class="node-label">Subject Document 13</div>
+      </div>
+      <div
+        class="doc-node"
+        id="node-n14"
+        style="
+          left: 560px;
+          top: 1160px;
+          width: 280px;
+          transform: rotate(-0.5deg);
+        "
+      >
+        <div class="node-id">DOC-014</div>
+        <canvas
+          class="distort-canvas"
+          data-src="subject14.jpg"
+          width="280"
+          height="210"
+        ></canvas>
+        <div class="node-label">Subject Document 14</div>
+      </div>
+      <div
+        class="doc-node"
+        id="node-n15"
+        style="
+          left: 900px;
+          top: 1190px;
+          width: 270px;
+          transform: rotate(0.3deg);
+        "
+      >
+        <div class="node-id">DOC-015</div>
+        <canvas
+          class="distort-canvas"
+          data-src="subject15.jpg"
+          width="270"
+          height="202"
+        ></canvas>
+        <div class="node-label">Subject Document 15</div>
       </div>
 
       <!-- Text nodes -->
       <div
         class="text-node"
         id="node-missing"
-        style="left: 820px; top: 380px; transform: rotate(1.5deg)"
-      >
-        <div class="node-id">DOC-007 — Origin</div>
-        <div class="node-text">
-          Birth record not located. Cross-reference with regional civil registry
-          yields three possible matches, none conclusive. Soviet-era
-          reorganization of Dushanbe records complicates search.
-        </div>
-      </div>
-
-      <div
-        class="text-node"
-        id="node-note1"
-        style="left: 940px; top: 260px; transform: rotate(-1deg)"
+        style="left: 340px; top: 1420px; transform: rotate(0.6deg)"
       >
         <div class="node-id">Researcher Note</div>
         <div class="node-text">
-          Name of guardian recorded as — [illegible]. Origin:
-          <span class="node-text redacted">████████</span>. Age estimated.
+          Birth record not located. Cross-reference with regional civil registry
+          yields three possible matches, none conclusive.
         </div>
       </div>
-
       <div
         class="text-node"
         id="node-custodian"
-        style="left: 300px; top: 580px; transform: rotate(0.8deg)"
+        style="left: 700px; top: 1440px; transform: rotate(-0.4deg)"
       >
         <div class="node-id">Chain of Custody</div>
         <div class="node-text">
@@ -416,68 +612,25 @@
     <script src="distort-text.js"></script>
     <script src="sketch2.js"></script>
     <script>
-      // Draw SVG connection lines between node centers after layout
       function drawConnections() {
         const field = document.getElementById("constellation-field");
         const svg = document.getElementById("connection-lines");
         svg.style.height = field.scrollHeight + "px";
-
         document.querySelectorAll(".conn-line").forEach((line) => {
-          const fromId = "node-" + line.dataset.from;
-          const toId = "node-" + line.dataset.to;
-          const fromEl = document.getElementById(fromId);
-          const toEl = document.getElementById(toId);
+          const fromEl = document.getElementById("node-" + line.dataset.from);
+          const toEl = document.getElementById("node-" + line.dataset.to);
           if (!fromEl || !toEl) return;
-
           const fieldRect = field.getBoundingClientRect();
-          const fromRect = fromEl.getBoundingClientRect();
-          const toRect = toEl.getBoundingClientRect();
-
-          const x1 = fromRect.left - fieldRect.left + fromRect.width / 2;
-          const y1 = fromRect.top - fieldRect.top + fromRect.height / 2;
-          const x2 = toRect.left - fieldRect.left + toRect.width / 2;
-          const y2 = toRect.top - fieldRect.top + toRect.height / 2;
-
-          line.setAttribute("x1", x1);
-          line.setAttribute("y1", y1);
-          line.setAttribute("x2", x2);
-          line.setAttribute("y2", y2);
+          const fr = fromEl.getBoundingClientRect();
+          const tr = toEl.getBoundingClientRect();
+          line.setAttribute("x1", fr.left - fieldRect.left + fr.width / 2);
+          line.setAttribute("y1", fr.top - fieldRect.top + fr.height / 2);
+          line.setAttribute("x2", tr.left - fieldRect.left + tr.width / 2);
+          line.setAttribute("y2", tr.top - fieldRect.top + tr.height / 2);
         });
       }
-
-      // Init canvases for dossier (sketch2 handles distort-canvas but needs images loaded)
-      document.addEventListener("DOMContentLoaded", () => {
-        document.querySelectorAll(".distort-canvas").forEach((canvas) => {
-          const src = canvas.dataset.src;
-          const img = new Image();
-          img.onload = () => {
-            const ratio = img.naturalHeight / img.naturalWidth;
-            canvas.height = Math.round(canvas.width * ratio);
-            canvas._loaded = true;
-            canvas
-              .getContext("2d")
-              .drawImage(img, 0, 0, canvas.width, canvas.height);
-          };
-          img.onerror = () => {
-            canvas._loaded = true;
-            const ctx = canvas.getContext("2d");
-            ctx.fillStyle = "#2e1f12";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "#5a4a3a";
-            ctx.font = "10px Courier New";
-            ctx.fillText(src, 8, canvas.height / 2);
-          };
-          img.src = src;
-        });
-
-        setTimeout(drawConnections, 200);
-        window.addEventListener("resize", drawConnections);
-
-        // set field height
-        const maxBottom = 700;
-        document.getElementById("constellation-field").style.minHeight =
-          maxBottom + "px";
-      });
+      setTimeout(drawConnections, 400);
+      window.addEventListener("resize", drawConnections);
     </script>
   </body>
 </html>

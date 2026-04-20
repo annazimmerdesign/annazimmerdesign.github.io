@@ -33,7 +33,7 @@ let socket;
 
 function initSocket() {
   socket = io(SOCKET_SERVER_URL, {
-  transports: ['polling', 'websocket'],
+  transports: ['websocket', 'polling'],  
   reconnectionAttempts: 5,
   reconnectionDelay: 2000,
 });

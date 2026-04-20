@@ -266,4 +266,9 @@ document.addEventListener('contentLoaded', () => {
   initSocket();
   // socket 'init' event handles canvas setup once connected
   // connect_error falls back to Supabase
+  // Keep Render instance warm
+setInterval(() => {
+  fetch('https://dukhtar-server.onrender.com/health')
+    .catch(() => {});
+}, 10 * 60 * 1000);
 });

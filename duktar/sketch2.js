@@ -182,15 +182,13 @@ function initCanvases() {
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
       setTimeout(() => {
-        const r = canvas.getBoundingClientRect();
-        const absX = r.left + window.scrollX + r.width / 2;
-        const absY = r.top  + window.scrollY + r.height / 2;
-        const gx = Math.floor((absX / document.documentElement.scrollWidth)  * GRID_W);
-        const gy = Math.floor((absY / document.documentElement.scrollHeight) * GRID_H);
-        const idx = Math.min(GRID_H - 1, gy) * GRID_W + Math.min(GRID_W - 1, gx);
-        const damage = damageMap[idx] || 0;
-        if (damage >= IMAGE_DAMAGE_THRESHOLD) distortCanvas(canvas, damage);
-      }, 300);
+  // find max damage across whole map as a proxy
+  let maxDamage = 0;
+  for (let i = 0; i < damageMap.length; i++) {
+    if (damageMap[i] > maxDamage) maxDamage = damageMap[i];
+  }
+  if (maxDamage >= IMAGE_DAMAGE_THRESHOLD) distortCanvas(canvas, maxDamage);
+}, 300);
     };
 
     img.onerror = () => {
@@ -254,7 +252,7 @@ document.addEventListener('mousemove', e => {
 
   // throttle canvas distortion to max once per 500ms to avoid thrashing
   const now = Date.now();
-  if (now - lastDistortTime > 500) {
+  if (now - lastDistortTime > 100) {
     lastDistortTime = now;
     document.querySelectorAll('.distort-canvas').forEach(canvas => {
       const r = canvas.getBoundingClientRect();

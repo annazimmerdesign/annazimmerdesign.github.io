@@ -168,18 +168,21 @@ function initCanvases(saved) {
     const src = canvas.dataset.src;
     const img = new Image();
     img.onload = () => {
-      canvas._loaded = true;
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      // use offsetTop/offsetLeft instead of getBoundingClientRect
-      // so position is correct even before scroll/paint
-      const absX = canvas.offsetLeft + canvas.offsetWidth / 2;
-      const absY = canvas.offsetTop + canvas.offsetHeight / 2;
-      const gx = Math.floor((absX / document.body.scrollWidth) * GRID_W);
-      const gy = Math.floor((absY / document.body.scrollHeight) * GRID_H);
-      const idx = Math.min(GRID_H - 1, gy) * GRID_W + Math.min(GRID_W - 1, gx);
-      const damage = damageMap[idx] || 0;
-      if (damage >= IMAGE_DAMAGE_THRESHOLD) distortCanvas(canvas, damage);
-    };
+  canvas._loaded = true;
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  setTimeout(() => {
+    const r = canvas.getBoundingClientRect();
+    const scrollX = window.scrollX || 0;
+    const scrollY = window.scrollY || 0;
+    const absX = r.left + scrollX + r.width / 2;
+    const absY = r.top + scrollY + r.height / 2;
+    const gx = Math.floor((absX / document.documentElement.scrollWidth) * GRID_W);
+    const gy = Math.floor((absY / document.documentElement.scrollHeight) * GRID_H);
+    const idx = Math.min(GRID_H-1, gy) * GRID_W + Math.min(GRID_W-1, gx);
+    const damage = damageMap[idx] || 0;
+    if (damage >= IMAGE_DAMAGE_THRESHOLD) distortCanvas(canvas, damage);
+  }, 300);
+};
     img.onerror = () => {
       canvas._loaded = true;
       ctx.fillStyle = '#2e1f12';

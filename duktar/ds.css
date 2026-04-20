@@ -25,8 +25,8 @@ html, body {
 
 /* HEADER */
 #site-header {
-  background: #e8dcc8;
-  border-bottom: 2px solid #c9bfad;
+  background: #1c1208;
+  border-bottom: 2px solid #3b2a1a;
   padding: 8px 14px;
 }
 
@@ -38,9 +38,9 @@ html, body {
 
 .header-label {
   font-family: "Courier New", monospace;
-  font-size: 0.85rem;
-  letter-spacing: 0.1em;
-  color: #1c1208;
+  font-size: 1rem;
+  letter-spacing: 0.12em;
+  color: #e8dcc8;
   text-transform: uppercase;
 }
 

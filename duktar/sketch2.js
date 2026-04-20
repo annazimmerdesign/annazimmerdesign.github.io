@@ -270,5 +270,5 @@ document.addEventListener('contentLoaded', () => {
 setInterval(() => {
   fetch('https://dukhtar-server.onrender.com/health')
     .catch(() => {});
-}, 10 * 60 * 1000);
+}, 4 * 60 * 1000);
 });

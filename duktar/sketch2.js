@@ -182,13 +182,12 @@ function initCanvases() {
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
       setTimeout(() => {
-  // find max damage across whole map as a proxy
-  let maxDamage = 0;
-  for (let i = 0; i < damageMap.length; i++) {
-    if (damageMap[i] > maxDamage) maxDamage = damageMap[i];
-  }
-  if (maxDamage >= IMAGE_DAMAGE_THRESHOLD) distortCanvas(canvas, maxDamage);
-}, 300);
+      let maxDamage = 0;
+      for (let i = 0; i < damageMap.length; i++) {
+        if (damageMap[i] > maxDamage) maxDamage = damageMap[i];
+      }
+      if (maxDamage >= IMAGE_DAMAGE_THRESHOLD) distortCanvas(canvas, maxDamage);
+      }, 300);
     };
 
     img.onerror = () => {

@@ -4,7 +4,7 @@
  * Change SOCKET_SERVER_URL to your PythonAnywhere URL when deploying.
  */
 
-const SOCKET_SERVER_URL = 'http://localhost:5000';  // → update to PythonAnywhere URL
+const SOCKET_SERVER_URL = 'http://localhost:5001';  // → update to PythonAnywhere URL
 
 const SUPABASE_URL = 'https://dkszxyudruaqtlhininm.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrc3p4eXVkcnVhcXRsaGluaW5tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzODcwNzEsImV4cCI6MjA5MDk2MzA3MX0.mjtPxo0yvpPedV0vTlJ4qIZ5vOYHTnkGlfSR27yx4-U';

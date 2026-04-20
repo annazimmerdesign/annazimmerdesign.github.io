@@ -33,10 +33,10 @@ let socket;
 
 function initSocket() {
   socket = io(SOCKET_SERVER_URL, {
-    transports: ['websocket', 'polling'],
-    reconnectionAttempts: 5,
-    reconnectionDelay: 2000,
-  });
+  transports: ['polling', 'websocket'],
+  reconnectionAttempts: 5,
+  reconnectionDelay: 2000,
+});
 
   socket.on('connect', () => {
     socketConnected = true;

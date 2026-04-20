@@ -27,27 +27,40 @@ html, body {
 #site-header {
   background: #1c1208;
   border-bottom: 2px solid #3b2a1a;
-  padding: 8px 14px;
+  padding: 14px 14px 10px;
 }
 
-#header-inner {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+#site-title {
+  font-family: "Courier New", monospace;
+  font-size: 2rem;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+  color: #e8dcc8;
+  text-transform: uppercase;
+  line-height: 1.1;
+  margin-bottom: 3px;
+}
+
+#site-subtitle {
+  font-family: "Courier New", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  color: #a09080;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+#header-meta {
+  border-top: 1px solid #3b2a1a;
+  padding-top: 6px;
 }
 
 .header-label {
   font-family: "Courier New", monospace;
-  font-size: 1rem;
-  letter-spacing: 0.12em;
-  color: #e8dcc8;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  color: #a09080;
   text-transform: uppercase;
-}
-
-.header-label:first-child {
-  font-size: 1rem;
-  font-weight: bold;
-  letter-spacing: 0.08em;
 }
 
 /* COLUMNS */

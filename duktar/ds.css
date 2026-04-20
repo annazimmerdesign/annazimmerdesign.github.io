@@ -71,7 +71,7 @@ html, body {
 
 .header-label {
   font-family: 'Anthony', "Courier New", monospace;
-  font-size: 0.68rem;
+  font-size: 2rem;
   letter-spacing: 0.1em;
   color: #a09080;
   text-transform: uppercase;
@@ -112,7 +112,7 @@ html, body {
   background: #e8dcc8;
   color: #1c1208;
   font-family: 'Anthony', "Courier New", monospace;
-  font-size: 0.72rem;
+  font-size: 1rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   padding: 4px 8px;
@@ -136,7 +136,7 @@ html, body {
 
 .nav-list li a {
   font-family: 'Anthony', "Courier New", monospace;
-  font-size: 0.7rem;
+  font-size: 1rem;
   color: #c9bfad;
   text-decoration: none;
   letter-spacing: 0.05em;
@@ -166,7 +166,7 @@ html, body {
 }
 
 .entry p {
-  font-size: 0.88rem;
+  font-size: 1rem;
   line-height: 1.6;
   color: #c9bfad;
 }
@@ -178,7 +178,7 @@ html, body {
 }
 
 .text-block p {
-  font-size: 0.88rem;
+  font-size: 1rem;
   line-height: 1.6;
   color: #c9bfad;
   margin-bottom: 4px;

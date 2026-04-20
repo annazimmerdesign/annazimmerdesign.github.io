@@ -140,7 +140,7 @@ function distortCanvas(canvas, damage) {
     off.width = w; off.height = h;
     const octx = off.getContext('2d');
 
-    const passes = Math.round(damage * 8);
+    const passes = Math.round(damage * 40);
     const scale = Math.max(0.5, 1 - passes * 0.025);
 
     octx.drawImage(fresh, 0, 0, w * scale, h * scale);
@@ -151,7 +151,7 @@ function distortCanvas(canvas, damage) {
     let seed = Math.floor(damage * 1000);
     for (let i = 0; i < id.data.length; i += 4) {
       seed = (seed * 9301 + 49297) % 233280;
-      const n = ((seed / 233280) - 0.5) * passes * 1.2;
+      const n = ((seed / 233280) - 0.5) * passes * 3;
       id.data[i]   = Math.min(255, Math.max(0, id.data[i]   + n));
       id.data[i+1] = Math.min(255, Math.max(0, id.data[i+1] + n));
       id.data[i+2] = Math.min(255, Math.max(0, id.data[i+2] + n));

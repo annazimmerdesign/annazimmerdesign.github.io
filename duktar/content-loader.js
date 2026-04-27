@@ -82,10 +82,9 @@ if (c.images && c.images.length) {
     `).join('');
   }
 document.dispatchEvent(new Event('contentLoaded'));
+  setTimeout(() => {
+    if (window.wrapAllParagraphs) window.wrapAllParagraphs();
+  }, 100);
 }
-
-setTimeout(() => {
-  if (window.wrapAllParagraphs) window.wrapAllParagraphs();
-}, 100);
 
 loadContent();

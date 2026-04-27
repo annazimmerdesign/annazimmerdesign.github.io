@@ -84,4 +84,8 @@ if (c.images && c.images.length) {
 document.dispatchEvent(new Event('contentLoaded'));
 }
 
+setTimeout(() => {
+  if (window.wrapAllParagraphs) window.wrapAllParagraphs();
+}, 100);
+
 loadContent();

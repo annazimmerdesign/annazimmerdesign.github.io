@@ -39,10 +39,10 @@ HEADERS = {
 }
 
 # ---- Damage map ----
-GRID_W = 96
-GRID_H = 96
+GRID_W = 192
+GRID_H = 192
 BRUSH_RADIUS = 4
-DAMAGE_PER_PASS = 0.04
+DAMAGE_PER_PASS = 0.15
 MAX_DAMAGE = 1.0
 
 damage_map = [0.0] * (GRID_W * GRID_H)

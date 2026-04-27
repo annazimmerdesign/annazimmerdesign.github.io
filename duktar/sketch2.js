@@ -13,8 +13,8 @@ const SUPABASE_HEADERS = {
   'Content-Type': 'application/json',
 };
 
-const GRID_W = 96;
-const GRID_H = 96;
+const GRID_W = 192;
+const GRID_H = 192;
 const BRUSH_RADIUS = 4;
 const IMAGE_DAMAGE_THRESHOLD = 0.08;
 

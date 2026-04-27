@@ -152,3 +152,47 @@
   // kick off the decay loop immediately (handles return-to-zero when mouse is still)
   rafId = requestAnimationFrame(tick);
 })();
+// ---- Cursor glitch sweep ----
+// As the cursor crosses text elements, briefly apply a scanline glitch:
+// a quick horizontal translate + opacity drop, like a read head passing over.
+
+(function() {
+  const GLITCH_RADIUS = 60;      // px — vertical band around cursor that glitches
+  const GLITCH_DURATION = 120;   // ms
+  const glitching = new WeakSet();
+
+  let lastGlitchY = -999;
+
+  document.addEventListener('mousemove', e => {
+    // only fire when cursor moves significantly in Y
+    if (Math.abs(e.clientY - lastGlitchY) < 8) return;
+    lastGlitchY = e.clientY;
+
+    const candidates = document.querySelectorAll(
+      '.entry p, .log-entry p, .entry-date, .log-date, .nav-list li a, .meta-key, .meta-val, .doc-caption, .node-label, .node-id, .photo-caption'
+    );
+
+    candidates.forEach(el => {
+      if (glitching.has(el)) return;
+      const r = el.getBoundingClientRect();
+      const elCenterY = r.top + r.height / 2;
+      if (Math.abs(elCenterY - e.clientY) > GLITCH_RADIUS) return;
+
+      glitching.add(el);
+      const originalTransform = el.style.transform || '';
+      const originalOpacity = el.style.opacity || '';
+
+      // phase 1: shift + fade
+      const shift = (Math.random() - 0.5) * 6;
+      el.style.transform = `${originalTransform} translateX(${shift}px)`;
+      el.style.opacity = '0.6';
+
+      setTimeout(() => {
+        // phase 2: snap back
+        el.style.transform = originalTransform;
+        el.style.opacity = originalOpacity;
+        setTimeout(() => glitching.delete(el), 50);
+      }, GLITCH_DURATION);
+    });
+  });
+})();

@@ -73,7 +73,11 @@ def load_from_supabase():
             row = data[0]
             interactions = row.get('passes') or 0
             if row.get('damage_map'):
-                damage_map = list(json.loads(row['damage_map']))
+                loaded = list(json.loads(row['damage_map']))
+                if len(loaded) == GRID_W * GRID_H:
+                    damage_map = loaded
+                else:
+                    print(f'Damage map size mismatch ({len(loaded)} vs {GRID_W * GRID_H}) — starting fresh')
         print(f'Loaded from Supabase: {interactions} interactions')
     except Exception as e:
         print(f'Supabase load failed (starting fresh): {e}')
@@ -164,9 +168,10 @@ def on_cursor_move(data):
 
 @socketio.on('cursor_position')
 def on_cursor_position(data):
-    from flask_socketio import request as sock_req
+    from flask_socketio import ConnectionRefusedError
+    from flask import request
     emit('remote_cursor', {
-        'id': sock_req.sid,
+        'id': request.sid,
         'nx': data.get('nx', 0),
         'ny': data.get('ny', 0),
     }, broadcast=True, include_self=False)

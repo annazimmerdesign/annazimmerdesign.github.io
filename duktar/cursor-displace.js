@@ -1,75 +1,17 @@
 // cursor-displace.js
-// Applies a subtle displacement / heat-shimmer effect as the cursor moves.
-// Two layers:
-//   1. An SVG filter (feTurbulence + feDisplacementMap) applied to a fixed
-//      grain overlay — the grain itself distorts, not the text.
-//   2. A very light CSS transform on paragraph elements near the cursor,
-//      making text feel like it's being viewed through old glass or a photocopy.
+// Local cursor displacement effect — small pixel radius around cursor only.
+// Text elements within ~80px of cursor get a subtle translate + skew.
+// Remote cursors from other visitors are rendered as glitch traces.
 
 (function () {
-  // ---- Grain overlay ----
-  // A fixed full-viewport SVG that sits over the page at low opacity.
-  // The feTurbulence seed shifts on mousemove, giving the grain a living quality.
 
-  const svgNS = 'http://www.w3.org/2000/svg';
+  // ---- Local text displacement ----
 
-  const overlay = document.createElementNS(svgNS, 'svg');
-  overlay.setAttribute('id', 'grain-overlay');
-  overlay.style.cssText = `
-    position: fixed;
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
-    pointer-events: none;
-    z-index: 10;
-    opacity: 0.28;
-  `;
+  const TEXT_RADIUS = 80;
+  const MAX_TRANSLATE = 0.8;
+  const MAX_SKEW = 0.15;
+  const DECAY = 0.1;
 
-  const defs = document.createElementNS(svgNS, 'defs');
-  const filter = document.createElementNS(svgNS, 'filter');
-  filter.setAttribute('id', 'grain-filter');
-  filter.setAttribute('x', '0%');
-  filter.setAttribute('y', '0%');
-  filter.setAttribute('width', '100%');
-  filter.setAttribute('height', '100%');
-  filter.setAttribute('color-interpolation-filters', 'sRGB');
-
-  const turbulence = document.createElementNS(svgNS, 'feTurbulence');
-  turbulence.setAttribute('type', 'fractalNoise');
-  turbulence.setAttribute('baseFrequency', '0.68');
-  turbulence.setAttribute('numOctaves', '4');
-  turbulence.setAttribute('seed', '2');
-  turbulence.setAttribute('stitchTiles', 'stitch');
-  turbulence.setAttribute('result', 'noise');
-
-  const colorMatrix = document.createElementNS(svgNS, 'feColorMatrix');
-  colorMatrix.setAttribute('type', 'saturate');
-  colorMatrix.setAttribute('values', '0');
-
-  filter.appendChild(turbulence);
-  filter.appendChild(colorMatrix);
-  defs.appendChild(filter);
-  overlay.appendChild(defs);
-
-  const rect = document.createElementNS(svgNS, 'rect');
-  rect.setAttribute('width', '100%');
-  rect.setAttribute('height', '100%');
-  rect.setAttribute('filter', 'url(#grain-filter)');
-  rect.setAttribute('fill', '#1c1208');
-  overlay.appendChild(rect);
-
-  document.body.appendChild(overlay);
-
-  // ---- Text displacement ----
-  // Paragraphs and entries within ~200px of cursor get a very slight
-  // CSS transform that shifts and skews — like viewing through old glass.
-  // Magnitude is intentionally small; this should feel environmental, not dramatic.
-
-  const TEXT_RADIUS = 220;       // px — how close cursor must be to affect element
-  const MAX_TRANSLATE = 0.7;     // px — maximum offset
-  const MAX_SKEW = 0.12;         // degrees
-  const DECAY = 0.08;            // lerp factor for smooth return
-
-  // Track current displacement per element
   const elementStates = new WeakMap();
 
   function getOrInitState(el) {
@@ -81,22 +23,10 @@
 
   let mouseX = -9999, mouseY = -9999;
   let rafId = null;
-  let seed = 2;
-  let lastSeedX = -1, lastSeedY = -1;
 
   document.addEventListener('mousemove', e => {
     mouseX = e.clientX;
     mouseY = e.clientY;
-
-    // Shift turbulence seed slowly as cursor moves across grid cells (32px)
-    const gx = Math.floor(mouseX / 32);
-    const gy = Math.floor(mouseY / 32);
-    if (gx !== lastSeedX || gy !== lastSeedY) {
-      lastSeedX = gx; lastSeedY = gy;
-      seed = (seed + 1) % 99;
-      turbulence.setAttribute('seed', seed);
-    }
-
     if (!rafId) rafId = requestAnimationFrame(tick);
   });
 
@@ -104,7 +34,7 @@
     rafId = null;
 
     const candidates = document.querySelectorAll(
-      '.entry p, .text-block p, .log-entry p, .entry-date, .log-date, .nav-list li a'
+      '.entry p, .text-block p, .log-entry p, .entry-date, .log-date, .nav-list li a, .meta-key, .meta-val, .doc-caption'
     );
 
     candidates.forEach(el => {
@@ -118,9 +48,7 @@
       const state = getOrInitState(el);
 
       if (dist < TEXT_RADIUS) {
-        // influence falls off with distance
         const influence = 1 - dist / TEXT_RADIUS;
-        // direction away from cursor (text appears to recoil slightly)
         const angle = Math.atan2(dy, dx);
         state.targetTx = -Math.cos(angle) * MAX_TRANSLATE * influence;
         state.targetTy = -Math.sin(angle) * MAX_TRANSLATE * influence;
@@ -131,12 +59,10 @@
         state.targetSx = 0;
       }
 
-      // lerp toward target
       state.tx += (state.targetTx - state.tx) * DECAY;
       state.ty += (state.targetTy - state.ty) * DECAY;
       state.sx += (state.targetSx - state.sx) * DECAY;
 
-      // only apply if meaningfully non-zero (avoid thrashing style for distant els)
       const mag = Math.abs(state.tx) + Math.abs(state.ty) + Math.abs(state.sx);
       if (mag > 0.005) {
         el.style.transform = `translate(${state.tx.toFixed(3)}px, ${state.ty.toFixed(3)}px) skewX(${state.sx.toFixed(3)}deg)`;
@@ -145,54 +71,112 @@
       }
     });
 
-    // keep ticking while any element still has residual displacement
     rafId = requestAnimationFrame(tick);
   }
 
-  // kick off the decay loop immediately (handles return-to-zero when mouse is still)
   rafId = requestAnimationFrame(tick);
-})();
-// ---- Cursor glitch sweep ----
-// As the cursor crosses text elements, briefly apply a scanline glitch:
-// a quick horizontal translate + opacity drop, like a read head passing over.
 
-(function() {
-  const GLITCH_RADIUS = 60;      // px — vertical band around cursor that glitches
-  const GLITCH_DURATION = 120;   // ms
+  // ---- Local glitch on cursor movement ----
+  // Small radius glitch — only elements within 80px of cursor
+
+  const GLITCH_RADIUS = 80;
+  const GLITCH_DURATION = 100;
   const glitching = new WeakSet();
-
-  let lastGlitchY = -999;
+  let lastGlitchPos = { x: -999, y: -999 };
 
   document.addEventListener('mousemove', e => {
-    // only fire when cursor moves significantly in Y
-    if (Math.abs(e.clientY - lastGlitchY) < 8) return;
-    lastGlitchY = e.clientY;
+    const dx = e.clientX - lastGlitchPos.x;
+    const dy = e.clientY - lastGlitchPos.y;
+    if (Math.sqrt(dx*dx + dy*dy) < 12) return;
+    lastGlitchPos = { x: e.clientX, y: e.clientY };
 
     const candidates = document.querySelectorAll(
-      '.entry p, .log-entry p, .entry-date, .log-date, .nav-list li a, .meta-key, .meta-val, .doc-caption, .node-label, .node-id, .photo-caption'
+      '.entry p, .log-entry p, .entry-date, .log-date, .nav-list li a, .meta-key, .meta-val'
     );
 
     candidates.forEach(el => {
       if (glitching.has(el)) return;
       const r = el.getBoundingClientRect();
-      const elCenterY = r.top + r.height / 2;
-      if (Math.abs(elCenterY - e.clientY) > GLITCH_RADIUS) return;
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      const dist = Math.sqrt((cx - e.clientX)**2 + (cy - e.clientY)**2);
+      if (dist > GLITCH_RADIUS) return;
 
       glitching.add(el);
-      const originalTransform = el.style.transform || '';
-      const originalOpacity = el.style.opacity || '';
-
-      // phase 1: shift + fade
-      const shift = (Math.random() - 0.5) * 6;
-      el.style.transform = `${originalTransform} translateX(${shift}px)`;
-      el.style.opacity = '0.6';
+      const orig = el.style.transform || '';
+      const shift = (Math.random() - 0.5) * 4;
+      el.style.transform = `${orig} translateX(${shift}px)`;
+      el.style.opacity = '0.65';
 
       setTimeout(() => {
-        // phase 2: snap back
-        el.style.transform = originalTransform;
-        el.style.opacity = originalOpacity;
-        setTimeout(() => glitching.delete(el), 50);
+        el.style.transform = orig;
+        el.style.opacity = '';
+        setTimeout(() => glitching.delete(el), 40);
       }, GLITCH_DURATION);
     });
   });
+
+  // ---- Remote cursors ----
+  // Other visitors' cursor positions are broadcast via socket.
+  // Each remote cursor renders as a small glitch trace on the page.
+
+  const remoteCursors = {};
+
+  window.renderRemoteCursor = function(socketId, normX, normY) {
+    const x = normX * window.innerWidth;
+    const y = normY * window.innerHeight;
+
+    // glitch text elements near the remote cursor position
+    const candidates = document.querySelectorAll(
+      '.entry p, .log-entry p, .entry-date, .log-date, .meta-key, .meta-val'
+    );
+
+    candidates.forEach(el => {
+      if (glitching.has(el)) return;
+      const r = el.getBoundingClientRect();
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      const dist = Math.sqrt((cx - x)**2 + (cy - y)**2);
+      if (dist > GLITCH_RADIUS) return;
+
+      glitching.add(el);
+      const orig = el.style.transform || '';
+      const shift = (Math.random() - 0.5) * 3;
+      el.style.transform = `${orig} translateX(${shift}px)`;
+      el.style.opacity = '0.7';
+
+      setTimeout(() => {
+        el.style.transform = orig;
+        el.style.opacity = '';
+        setTimeout(() => glitching.delete(el), 40);
+      }, 80);
+    });
+
+    // show a faint cursor dot
+    if (!remoteCursors[socketId]) {
+      const dot = document.createElement('div');
+      dot.style.cssText = `
+        position: fixed;
+        width: 4px;
+        height: 4px;
+        background: rgba(232,220,200,0.4);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 9998;
+        transition: left 0.1s linear, top 0.1s linear;
+      `;
+      document.body.appendChild(dot);
+      remoteCursors[socketId] = dot;
+    }
+    remoteCursors[socketId].style.left = (x - 2) + 'px';
+    remoteCursors[socketId].style.top  = (y - 2) + 'px';
+  };
+
+  window.removeRemoteCursor = function(socketId) {
+    if (remoteCursors[socketId]) {
+      remoteCursors[socketId].remove();
+      delete remoteCursors[socketId];
+    }
+  };
+
 })();

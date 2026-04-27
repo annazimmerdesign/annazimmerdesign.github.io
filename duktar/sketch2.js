@@ -80,6 +80,14 @@ function initSocket() {
     updatePresence();
   });
 
+  socket.on('remote_cursor', (data) => {
+    if (window.renderRemoteCursor) renderRemoteCursor(data.id, data.nx, data.ny);
+  });
+
+  socket.on('disconnect_peer', (data) => {
+    if (window.removeRemoteCursor) removeRemoteCursor(data.id);
+  });
+
   socket.on('connect_error', (err) => {
     console.warn('Socket failed, falling back to Supabase:', err.message);
     if (!socketConnected) loadFromSupabase();
@@ -234,6 +242,7 @@ document.addEventListener('mousemove', e => {
 
   if (socketConnected) {
     socket.emit('cursor_move', { gx, gy });
+    socket.emit('cursor_position', { nx: e.clientX / window.innerWidth, ny: e.clientY / window.innerHeight });
   } else {
     for (let dy = -BRUSH_RADIUS; dy <= BRUSH_RADIUS; dy++) {
       for (let dx = -BRUSH_RADIUS; dx <= BRUSH_RADIUS; dx++) {

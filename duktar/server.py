@@ -161,6 +161,16 @@ def on_cursor_move(data):
 
     schedule_save()
 
+
+@socketio.on('cursor_position')
+def on_cursor_position(data):
+    from flask_socketio import request as sock_req
+    emit('remote_cursor', {
+        'id': sock_req.sid,
+        'nx': data.get('nx', 0),
+        'ny': data.get('ny', 0),
+    }, broadcast=True, include_self=False)
+
 @socketio.on('request_full_map')
 def on_request_full_map():
     emit('init', {

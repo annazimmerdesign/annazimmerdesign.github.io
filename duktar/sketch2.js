@@ -144,30 +144,67 @@ function distortCanvas(canvas, damage) {
   fresh.onload = () => {
     const ctx = canvas.getContext('2d');
     const w = canvas.width, h = canvas.height;
+
+    // number of re-encoding passes — scales with damage, max ~100
+    const passes = Math.floor(damage * 100);
+    if (passes === 0) {
+      ctx.drawImage(fresh, 0, 0, w, h);
+      return;
+    }
+
+    // quality per pass — high enough that degradation is very gradual
+    // at pass 1: q=0.92, pass 50: q=0.72, pass 100: q=0.52
+    const quality = Math.max(0.35, 0.95 - passes * 0.006);
+
+    // do the re-encoding chain synchronously on an offscreen canvas
     const off = document.createElement('canvas');
     off.width = w; off.height = h;
     const octx = off.getContext('2d');
+    octx.drawImage(fresh, 0, 0, w, h);
 
-    const passes = Math.round(damage * 10);
-    const scale = Math.max(0.5, 1 - passes * 0.025);
+    // each iteration: export as JPEG at degrading quality, reimport
+    let chain = Promise.resolve(off);
 
-    octx.drawImage(fresh, 0, 0, w * scale, h * scale);
-    octx.drawImage(off, 0, 0, w * scale, h * scale, 0, 0, w, h);
+    const runPass = (sourceCanvas) => {
+      return new Promise(resolve => {
+        const dataURL = sourceCanvas.toDataURL('image/jpeg', quality);
+        const img = new Image();
+        img.onload = () => {
+          const tmp = document.createElement('canvas');
+          tmp.width = w; tmp.height = h;
+          tmp.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(tmp);
+        };
+        img.src = dataURL;
+      });
+    };
 
-    // seeded noise — deterministic per damage level
-    const id = octx.getImageData(0, 0, w, h);
-    let seed = Math.floor(damage * 1000);
-    for (let i = 0; i < id.data.length; i += 4) {
-      seed = (seed * 9301 + 49297) % 233280;
-      const n = ((seed / 233280) - 0.5) * passes * 3;
-      id.data[i]   = Math.min(255, Math.max(0, id.data[i]   + n));
-      id.data[i+1] = Math.min(255, Math.max(0, id.data[i+1] + n));
-      id.data[i+2] = Math.min(255, Math.max(0, id.data[i+2] + n));
+    // chain the passes — but cap actual iterations at 12 for performance
+    // we simulate 100 passes by lowering quality more aggressively per iteration
+    const actualPasses = Math.min(12, passes);
+    const passQuality = Math.max(0.3, 0.98 - (passes / 100) * 0.65);
+
+    let p = Promise.resolve(off);
+    for (let i = 0; i < actualPasses; i++) {
+      p = p.then(c => {
+        return new Promise(resolve => {
+          const dataURL = c.toDataURL('image/jpeg', passQuality);
+          const img = new Image();
+          img.onload = () => {
+            const tmp = document.createElement('canvas');
+            tmp.width = w; tmp.height = h;
+            tmp.getContext('2d').drawImage(img, 0, 0, w, h);
+            resolve(tmp);
+          };
+          img.src = dataURL;
+        });
+      });
     }
-    octx.putImageData(id, 0, 0);
 
-    ctx.clearRect(0, 0, w, h);
-    ctx.drawImage(off, 0, 0, w, h);
+    p.then(final => {
+      ctx.clearRect(0, 0, w, h);
+      ctx.drawImage(final, 0, 0, w, h);
+    });
   };
   fresh.src = canvas._originalSrc;
 }

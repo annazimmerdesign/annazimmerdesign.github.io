@@ -1,73 +1,102 @@
 // cursor-displace.js
-// Local cursor displacement effect — small pixel radius around cursor only.
-// Text elements within ~80px of cursor get a subtle translate + skew.
-// Remote cursors from other visitors are rendered as glitch traces.
+// Word-level cursor displacement — words scatter slightly when cursor approaches.
+// No opacity changes, pure positional recoil. "Words scared of the cursor."
+// Remote cursors from other visitors rendered as faint dots with same effect.
 
 (function () {
 
-  // ---- Local text displacement ----
+  // ---- Word wrapping ----
+  // Split paragraph text into individual word spans so we can animate per-word.
 
-  const TEXT_RADIUS = 80;
-  const MAX_TRANSLATE = 0.8;
-  const MAX_SKEW = 0.15;
-  const DECAY = 0.1;
-
-  const elementStates = new WeakMap();
-
-  function getOrInitState(el) {
-    if (!elementStates.has(el)) {
-      elementStates.set(el, { tx: 0, ty: 0, sx: 0, targetTx: 0, targetTy: 0, targetSx: 0 });
-    }
-    return elementStates.get(el);
+  function wrapWords(el) {
+    if (el._wordsWrapped) return;
+    el._wordsWrapped = true;
+    const text = el.textContent;
+    el.innerHTML = text.split(/(\s+)/).map(token => {
+      if (/^\s+$/.test(token)) return token;
+      return `<span class="word-unit" style="display:inline-block;">${token}</span>`;
+    }).join('');
   }
 
-  let mouseX = -9999, mouseY = -9999;
+  function wrapAllParagraphs() {
+    document.querySelectorAll(
+      '.entry p, .text-block p, .log-entry p, .entry-date, .log-date, .doc-caption, .node-label, .node-id, .photo-caption'
+    ).forEach(wrapWords);
+  }
+
+  // wrap on load and after any dynamic content injection
+  document.addEventListener('DOMContentLoaded', wrapAllParagraphs);
+  document.addEventListener('contentLoaded', wrapAllParagraphs);
+  setTimeout(wrapAllParagraphs, 800); // catch dynamically injected content
+
+  // ---- Word displacement ----
+
+  const WORD_RADIUS = 100;      // px — how close cursor must be to a word
+  const MAX_SCATTER = 3.5;      // px — max displacement
+  const DECAY = 0.12;           // lerp speed back to rest
+
+  const wordStates = new WeakMap();
+
+  function getWordState(el) {
+    if (!wordStates.has(el)) {
+      wordStates.set(el, { tx: 0, ty: 0, targetTx: 0, targetTy: 0 });
+    }
+    return wordStates.get(el);
+  }
+
+  let cursors = []; // all active cursor positions (local + remote)
+  let localX = -9999, localY = -9999;
   let rafId = null;
 
   document.addEventListener('mousemove', e => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
+    localX = e.clientX;
+    localY = e.clientY;
     if (!rafId) rafId = requestAnimationFrame(tick);
   });
 
   function tick() {
     rafId = null;
 
-    const candidates = document.querySelectorAll(
-      '.entry p, .text-block p, .log-entry p, .entry-date, .log-date, .nav-list li a, .meta-key, .meta-val, .doc-caption'
-    );
+    // build combined cursor list
+    const allCursors = [{ x: localX, y: localY }, ...Object.values(remoteCursorPositions)];
 
-    candidates.forEach(el => {
-      const r = el.getBoundingClientRect();
-      const cx = r.left + r.width / 2;
-      const cy = r.top + r.height / 2;
-      const dx = mouseX - cx;
-      const dy = mouseY - cy;
-      const dist = Math.sqrt(dx * dx + dy * dy);
+    document.querySelectorAll('.word-unit').forEach(word => {
+      const r = word.getBoundingClientRect();
+      if (r.width === 0) return;
+      const wx = r.left + r.width / 2;
+      const wy = r.top + r.height / 2;
 
-      const state = getOrInitState(el);
+      const state = getWordState(word);
+      state.targetTx = 0;
+      state.targetTy = 0;
 
-      if (dist < TEXT_RADIUS) {
-        const influence = 1 - dist / TEXT_RADIUS;
-        const angle = Math.atan2(dy, dx);
-        state.targetTx = -Math.cos(angle) * MAX_TRANSLATE * influence;
-        state.targetTy = -Math.sin(angle) * MAX_TRANSLATE * influence;
-        state.targetSx = (dx / TEXT_RADIUS) * MAX_SKEW * influence;
-      } else {
-        state.targetTx = 0;
-        state.targetTy = 0;
-        state.targetSx = 0;
+      // accumulate repulsion from all cursors
+      for (const cursor of allCursors) {
+        const dx = wx - cursor.x;
+        const dy = wy - cursor.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < WORD_RADIUS && dist > 0) {
+          const influence = (1 - dist / WORD_RADIUS);
+          // repel away from cursor
+          state.targetTx += (dx / dist) * MAX_SCATTER * influence;
+          state.targetTy += (dy / dist) * MAX_SCATTER * influence;
+        }
+      }
+
+      // clamp
+      const mag = Math.sqrt(state.targetTx ** 2 + state.targetTy ** 2);
+      if (mag > MAX_SCATTER) {
+        state.targetTx = (state.targetTx / mag) * MAX_SCATTER;
+        state.targetTy = (state.targetTy / mag) * MAX_SCATTER;
       }
 
       state.tx += (state.targetTx - state.tx) * DECAY;
       state.ty += (state.targetTy - state.ty) * DECAY;
-      state.sx += (state.targetSx - state.sx) * DECAY;
 
-      const mag = Math.abs(state.tx) + Math.abs(state.ty) + Math.abs(state.sx);
-      if (mag > 0.005) {
-        el.style.transform = `translate(${state.tx.toFixed(3)}px, ${state.ty.toFixed(3)}px) skewX(${state.sx.toFixed(3)}deg)`;
-      } else if (el.style.transform) {
-        el.style.transform = '';
+      if (Math.abs(state.tx) + Math.abs(state.ty) > 0.02) {
+        word.style.transform = `translate(${state.tx.toFixed(2)}px, ${state.ty.toFixed(2)}px)`;
+      } else {
+        word.style.transform = '';
       }
     });
 
@@ -76,106 +105,40 @@
 
   rafId = requestAnimationFrame(tick);
 
-  // ---- Local glitch on cursor movement ----
-  // Small radius glitch — only elements within 80px of cursor
-
-  const GLITCH_RADIUS = 80;
-  const GLITCH_DURATION = 100;
-  const glitching = new WeakSet();
-  let lastGlitchPos = { x: -999, y: -999 };
-
-  document.addEventListener('mousemove', e => {
-    const dx = e.clientX - lastGlitchPos.x;
-    const dy = e.clientY - lastGlitchPos.y;
-    if (Math.sqrt(dx*dx + dy*dy) < 12) return;
-    lastGlitchPos = { x: e.clientX, y: e.clientY };
-
-    const candidates = document.querySelectorAll(
-      '.entry p, .log-entry p, .entry-date, .log-date, .nav-list li a, .meta-key, .meta-val'
-    );
-
-    candidates.forEach(el => {
-      if (glitching.has(el)) return;
-      const r = el.getBoundingClientRect();
-      const cx = r.left + r.width / 2;
-      const cy = r.top + r.height / 2;
-      const dist = Math.sqrt((cx - e.clientX)**2 + (cy - e.clientY)**2);
-      if (dist > GLITCH_RADIUS) return;
-
-      glitching.add(el);
-      const orig = el.style.transform || '';
-      const shift = (Math.random() - 0.5) * 4;
-      el.style.transform = `${orig} translateX(${shift}px)`;
-      el.style.opacity = '0.65';
-
-      setTimeout(() => {
-        el.style.transform = orig;
-        el.style.opacity = '';
-        setTimeout(() => glitching.delete(el), 40);
-      }, GLITCH_DURATION);
-    });
-  });
-
   // ---- Remote cursors ----
-  // Other visitors' cursor positions are broadcast via socket.
-  // Each remote cursor renders as a small glitch trace on the page.
 
-  const remoteCursors = {};
+  const remoteCursorPositions = {};
+  const remoteCursorDots = {};
 
   window.renderRemoteCursor = function(socketId, normX, normY) {
     const x = normX * window.innerWidth;
     const y = normY * window.innerHeight;
+    remoteCursorPositions[socketId] = { x, y };
 
-    // glitch text elements near the remote cursor position
-    const candidates = document.querySelectorAll(
-      '.entry p, .log-entry p, .entry-date, .log-date, .meta-key, .meta-val'
-    );
-
-    candidates.forEach(el => {
-      if (glitching.has(el)) return;
-      const r = el.getBoundingClientRect();
-      const cx = r.left + r.width / 2;
-      const cy = r.top + r.height / 2;
-      const dist = Math.sqrt((cx - x)**2 + (cy - y)**2);
-      if (dist > GLITCH_RADIUS) return;
-
-      glitching.add(el);
-      const orig = el.style.transform || '';
-      const shift = (Math.random() - 0.5) * 3;
-      el.style.transform = `${orig} translateX(${shift}px)`;
-      el.style.opacity = '0.7';
-
-      setTimeout(() => {
-        el.style.transform = orig;
-        el.style.opacity = '';
-        setTimeout(() => glitching.delete(el), 40);
-      }, 80);
-    });
-
-    // show a faint cursor dot
-    if (!remoteCursors[socketId]) {
+    if (!remoteCursorDots[socketId]) {
       const dot = document.createElement('div');
       dot.style.cssText = `
         position: fixed;
-        width: 4px;
-        height: 4px;
-        background: rgba(232,220,200,0.4);
+        width: 3px;
+        height: 3px;
+        background: rgba(232,220,200,0.35);
         border-radius: 50%;
         pointer-events: none;
         z-index: 9998;
-        transition: left 0.1s linear, top 0.1s linear;
+        transition: left 0.08s linear, top 0.08s linear;
       `;
       document.body.appendChild(dot);
-      remoteCursors[socketId] = dot;
+      remoteCursorDots[socketId] = dot;
     }
-    remoteCursors[socketId].style.left = (x - 2) + 'px';
-    remoteCursors[socketId].style.top  = (y - 2) + 'px';
+    remoteCursorDots[socketId].style.left = (x - 1.5) + 'px';
+    remoteCursorDots[socketId].style.top  = (y - 1.5) + 'px';
   };
 
   window.removeRemoteCursor = function(socketId) {
-    if (remoteCursors[socketId]) {
-      remoteCursors[socketId].remove();
-      delete remoteCursors[socketId];
+    delete remoteCursorPositions[socketId];
+    if (remoteCursorDots[socketId]) {
+      remoteCursorDots[socketId].remove();
+      delete remoteCursorDots[socketId];
     }
   };
 

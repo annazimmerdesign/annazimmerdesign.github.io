@@ -80,10 +80,45 @@ overlay.appendChild(grainRect);
 document.body.appendChild(overlay);
 
 // update gradient center on mousemove
+let grainSeed = 8;
+let grainFreq = 0.72;
+let targetFreq = 0.72;
+let lastGrainX = -999, lastGrainY = -999;
+let grainRaf = null;
+
 document.addEventListener('mousemove', e => {
   radialGrad.setAttribute('cx', e.clientX);
   radialGrad.setAttribute('cy', e.clientY);
+
+  const dx = e.clientX - lastGrainX;
+  const dy = e.clientY - lastGrainY;
+  const speed = Math.sqrt(dx*dx + dy*dy);
+  lastGrainX = e.clientX;
+  lastGrainY = e.clientY;
+
+  // faster movement = more turbulence near cursor
+  targetFreq = 0.72 + Math.min(speed * 0.004, 0.18);
+
+  // shift seed slightly on movement — grain "moves"
+  if (speed > 3) {
+    grainSeed = (grainSeed + 1) % 200;
+    turbulence.setAttribute('seed', grainSeed);
+  }
+
+  if (!grainRaf) grainRaf = requestAnimationFrame(animateGrain);
 });
+
+function animateGrain() {
+  grainRaf = null;
+  // lerp frequency back to rest — grain settles after cursor stops
+  grainFreq += (targetFreq - grainFreq) * 0.15;
+  turbulence.setAttribute('baseFrequency', grainFreq.toFixed(4));
+  targetFreq += (0.72 - targetFreq) * 0.08;
+
+  if (Math.abs(grainFreq - 0.72) > 0.001) {
+    grainRaf = requestAnimationFrame(animateGrain);
+  }
+}
 
 
 (function () {

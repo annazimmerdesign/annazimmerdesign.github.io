@@ -95,15 +95,13 @@ document.dispatchEvent(new Event('contentLoaded'));
 }
 
 document.addEventListener("click", (e) => {
-  if (e.target.classList.contains("read-more")) {
-    const text = e.target.previousElementSibling;
-
-    text.classList.toggle("expanded");
-
-    e.target.textContent = text.classList.contains("expanded")
-      ? "collapse"
-      : "read more";
-  }
+  if (!e.target.classList.contains("read-more")) return;
+  const text = e.target.closest(".entry")?.querySelector(".entry-text");
+  if (!text) return;
+  text.classList.toggle("expanded");
+  e.target.textContent = text.classList.contains("expanded")
+    ? "[ collapse record ]"
+    : "[ expand record ]";
 });
 
 document.querySelectorAll(".entry-text").forEach(el => {
@@ -112,4 +110,3 @@ document.querySelectorAll(".entry-text").forEach(el => {
 });
 
 loadContent();
-

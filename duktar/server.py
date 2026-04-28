@@ -5,6 +5,7 @@ Flask-SocketIO live damage layer + server-side databend image corruption.
 
 from flask import Flask, send_file, jsonify
 from flask_socketio import SocketIO, emit
+from flask_cors import CORS
 import json
 import math
 import random
@@ -16,6 +17,7 @@ import threading
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dukhtar-secret-change-in-prod'
+CORS(app)
 
 socketio = SocketIO(
     app,

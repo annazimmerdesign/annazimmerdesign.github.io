@@ -128,7 +128,7 @@
 
   const WORD_RADIUS = 100;
   const MAX_SCATTER = 3.5;
-  const DECAY = 0.12;
+  const DECAY = 0.2;
 
   const wordStates = new WeakMap();
 

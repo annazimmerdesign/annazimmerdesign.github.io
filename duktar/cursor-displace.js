@@ -74,7 +74,7 @@ grainRect.setAttribute('height', '100%');
 grainRect.setAttribute('fill', '#1c1208');
 grainRect.setAttribute('filter', 'url(#grain-filter)');
 grainRect.setAttribute('mask', 'url(#grain-mask)');
-grainRect.setAttribute('opacity', '0.18');
+grainRect.setAttribute('opacity', '0.8');
 overlay.appendChild(grainRect);
 
 document.body.appendChild(overlay);

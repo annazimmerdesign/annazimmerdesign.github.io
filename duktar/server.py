@@ -141,40 +141,30 @@ def get_average_damage() -> float:
 
 
 def maybe_bend_images():
-    """
-    Check if average damage has crossed a new threshold
-    and apply one databend pass to all tracked images if so.
-    """
-    avg = get_average_damage()
-    
     for filename in list(bent_images.keys()):
-        last = last_bend_damage.get(filename, 0.0)
-        if avg - last < BEND_DAMAGE_STEP:
-            continue
-        
         passes = bend_pass_counts.get(filename, 0)
         if passes >= MAX_BEND_PASSES:
             continue
         
-        # apply one pass — intensity scales with pass count
+        # trigger a new pass every 50 interactions
+        expected_passes = min(MAX_BEND_PASSES, interactions // 50)
+        if passes >= expected_passes:
+            continue
+        
         intensity = 0.3 + (passes / MAX_BEND_PASSES) * 0.7
         seed = passes * 7919 + hash(filename) % 100000
         
         bent_images[filename] = databend(bent_images[filename], intensity, seed)
         bend_pass_counts[filename] = passes + 1
-        last_bend_damage[filename] = avg
         
-        print(f'Bent {filename}: pass {passes + 1}, intensity {intensity:.2f}, avg_damage {avg:.4f}')
+        print(f'Bent {filename}: pass {passes + 1}')
         
-        # broadcast the new bent image to all clients
         bent_b64 = base64.b64encode(bytes(bent_images[filename])).decode('utf-8')
         socketio.emit('image_update', {
             'filename': filename,
             'data': f'data:image/jpeg;base64,{bent_b64}',
             'passes': passes + 1,
         })
-        
-        # save to Supabase
         save_bent_image_to_supabase(filename, bent_b64, passes + 1)
 
 

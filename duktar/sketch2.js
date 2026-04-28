@@ -52,6 +52,7 @@ function initSocket() {
     connectedClients = data.connected || 1;
     initCanvases();
     updateDisplay();
+    registerImagesWithServer();
   });
 
   socket.on('damage_update', (data) => {

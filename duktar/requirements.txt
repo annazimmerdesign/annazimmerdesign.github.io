@@ -1,11 +1,5 @@
 flask
 flask-socketio
-gevent
-gevent-websocket
-requests
-
-flask
-flask-socketio
 flask-cors
 gevent
 gevent-websocket

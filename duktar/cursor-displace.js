@@ -50,6 +50,48 @@
 
   document.body.appendChild(overlay);
 
+  // ---- Persistent cursor trail ----
+  const trailCanvas = document.createElement('canvas');
+  trailCanvas.style.cssText = `
+    position: fixed; top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    pointer-events: none; z-index: 6;
+    mix-blend-mode: screen;
+  `;
+  trailCanvas.width = window.innerWidth;
+  trailCanvas.height = window.innerHeight;
+  window.addEventListener('resize', () => {
+    const tmp = document.createElement('canvas');
+    tmp.width = trailCanvas.width; tmp.height = trailCanvas.height;
+    tmp.getContext('2d').drawImage(trailCanvas, 0, 0);
+    trailCanvas.width = window.innerWidth;
+    trailCanvas.height = window.innerHeight;
+    trailCanvas.getContext('2d').drawImage(tmp, 0, 0);
+  });
+  document.body.appendChild(trailCanvas);
+  const trailCtx = trailCanvas.getContext('2d');
+  let lastTrailX = -1, lastTrailY = -1;
+
+  // fade trail very slowly — full persistence then gradual clearing
+  (function fadeLoop() {
+    trailCtx.fillStyle = 'rgba(0,0,0,0.006)';
+    trailCtx.fillRect(0, 0, trailCanvas.width, trailCanvas.height);
+    requestAnimationFrame(fadeLoop);
+  })();
+
+  function drawTrail(x, y, isRemote) {
+    if (lastTrailX < 0) { lastTrailX = x; lastTrailY = y; return; }
+    trailCtx.beginPath();
+    trailCtx.moveTo(lastTrailX, lastTrailY);
+    trailCtx.lineTo(x, y);
+    trailCtx.strokeStyle = isRemote ? 'rgba(200,185,160,0.06)' : 'rgba(232,220,200,0.12)';
+    trailCtx.lineWidth = isRemote ? 1 : 1.5;
+    trailCtx.lineCap = 'round';
+    trailCtx.stroke();
+    if (!isRemote) { lastTrailX = x; lastTrailY = y; }
+  }
+
+
   // grain state — only seed shifts, nothing translates
   let grainSeed = 8;
   let lastSeedX = -999, lastSeedY = -999;
@@ -112,6 +154,7 @@
       turbulence.setAttribute('seed', grainSeed);
     }
 
+    drawTrail(e.clientX, e.clientY, false);
     if (!wordRaf) wordRaf = requestAnimationFrame(tickWords);
   });
 
@@ -174,6 +217,7 @@
     const x = normX * window.innerWidth;
     const y = normY * window.innerHeight;
     remoteCursorPositions[socketId] = { x, y };
+    drawTrail(x, y, true);
 
     if (!remoteCursorDots[socketId]) {
       const dot = document.createElement('div');

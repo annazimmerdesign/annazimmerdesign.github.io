@@ -427,3 +427,19 @@ if __name__ == '__main__':
     load_bent_images_from_supabase()
     print('Starting server...')
     socketio.run(app, host='0.0.0.0', port=5009, debug=False)
+
+
+
+@app.route('/debug-images')
+
+def debug_images():
+    import os
+    base = os.path.dirname(__file__)
+    results = {}
+    for name in ['image1.jpg', 'image2.jpg', 'image3.jpg']:
+        for path in [
+            os.path.join(base, 'images', name),
+            os.path.join(base, name),
+        ]:
+            results[path] = os.path.exists(path)
+    return jsonify(results)

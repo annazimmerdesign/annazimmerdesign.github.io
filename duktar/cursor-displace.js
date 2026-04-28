@@ -1,6 +1,7 @@
 // cursor-displace.js
-// Word-level cursor displacement + subtle grain overlay with cursor clearing.
-// Optimized: grain updates throttled, RAF only runs when needed.
+// Word-level cursor displacement + subtle animated grain.
+// Grain shifts seed on movement giving illusion of particle disturbance.
+// No overlay translation — individual grain character changes, not position.
 
 (function () {
 
@@ -12,13 +13,12 @@
     position: fixed; top: 0; left: 0;
     width: 100vw; height: 100vh;
     pointer-events: none; z-index: 5;
+    will-change: auto;
   `;
 
   const defs = document.createElementNS(svgNS, 'defs');
-
   const grainFilter = document.createElementNS(svgNS, 'filter');
   grainFilter.setAttribute('id', 'grain-filter');
-  // limit filter region to avoid whole-page repaint
   grainFilter.setAttribute('x', '0%');
   grainFilter.setAttribute('y', '0%');
   grainFilter.setAttribute('width', '100%');
@@ -26,49 +26,18 @@
 
   const turbulence = document.createElementNS(svgNS, 'feTurbulence');
   turbulence.setAttribute('type', 'fractalNoise');
-  turbulence.setAttribute('baseFrequency', '0.72');
-  turbulence.setAttribute('numOctaves', '3'); // was 4, cheaper
+  turbulence.setAttribute('baseFrequency', '0.68');
+  turbulence.setAttribute('numOctaves', '3');
   turbulence.setAttribute('seed', '8');
   turbulence.setAttribute('stitchTiles', 'stitch');
+
   const saturate = document.createElementNS(svgNS, 'feColorMatrix');
   saturate.setAttribute('type', 'saturate');
   saturate.setAttribute('values', '0');
+
   grainFilter.appendChild(turbulence);
   grainFilter.appendChild(saturate);
-
-  const radialGrad = document.createElementNS(svgNS, 'radialGradient');
-  radialGrad.setAttribute('id', 'cursor-clear');
-  radialGrad.setAttribute('gradientUnits', 'userSpaceOnUse');
-  radialGrad.setAttribute('cx', '-999');
-  radialGrad.setAttribute('cy', '-999');
-  radialGrad.setAttribute('r', '110');
-  const stop1 = document.createElementNS(svgNS, 'stop');
-  stop1.setAttribute('offset', '0%');
-  stop1.setAttribute('stop-color', 'white');
-  stop1.setAttribute('stop-opacity', '0');
-  const stop2 = document.createElementNS(svgNS, 'stop');
-  stop2.setAttribute('offset', '55%');
-  stop2.setAttribute('stop-color', 'white');
-  stop2.setAttribute('stop-opacity', '0');
-  const stop3 = document.createElementNS(svgNS, 'stop');
-  stop3.setAttribute('offset', '100%');
-  stop3.setAttribute('stop-color', 'white');
-  stop3.setAttribute('stop-opacity', '1');
-  radialGrad.appendChild(stop1);
-  radialGrad.appendChild(stop2);
-  radialGrad.appendChild(stop3);
-
-  const mask = document.createElementNS(svgNS, 'mask');
-  mask.setAttribute('id', 'grain-mask');
-  const maskRect = document.createElementNS(svgNS, 'rect');
-  maskRect.setAttribute('width', '100%');
-  maskRect.setAttribute('height', '100%');
-  maskRect.setAttribute('fill', 'url(#cursor-clear)');
-  mask.appendChild(maskRect);
-
   defs.appendChild(grainFilter);
-  defs.appendChild(radialGrad);
-  defs.appendChild(mask);
   overlay.appendChild(defs);
 
   const grainRect = document.createElementNS(svgNS, 'rect');
@@ -76,31 +45,15 @@
   grainRect.setAttribute('height', '100%');
   grainRect.setAttribute('fill', '#1c1208');
   grainRect.setAttribute('filter', 'url(#grain-filter)');
-  grainRect.setAttribute('mask', 'url(#grain-mask)');
-  grainRect.setAttribute('opacity', '0.5');
+  grainRect.setAttribute('opacity', '0.14');
   overlay.appendChild(grainRect);
 
   document.body.appendChild(overlay);
 
-  // grain animation state
+  // grain state — only seed shifts, nothing translates
   let grainSeed = 8;
-  let grainFreq = 0.72;
-  let targetFreq = 0.72;
-  let lastGrainX = -999, lastGrainY = -999;
-  let grainRaf = null;
-  let lastGrainUpdate = 0;
-  const GRAIN_THROTTLE = 50; // ms — only update grain every 50ms max
-
-  function animateGrain() {
-    grainRaf = null;
-    grainFreq += (targetFreq - grainFreq) * 0.15;
-    targetFreq += (0.72 - targetFreq) * 0.08;
-    turbulence.setAttribute('baseFrequency', grainFreq.toFixed(3));
-
-    if (Math.abs(grainFreq - 0.72) > 0.002 || Math.abs(targetFreq - 0.72) > 0.002) {
-      grainRaf = requestAnimationFrame(animateGrain);
-    }
-  }
+  let lastSeedX = -999, lastSeedY = -999;
+  const SEED_CELL = 40; // px — grain shifts when cursor crosses a cell boundary
 
   // ---- Word wrapping ----
 
@@ -128,7 +81,7 @@
 
   const WORD_RADIUS = 100;
   const MAX_SCATTER = 3.5;
-  const DECAY = 0.2;
+  const DECAY = 0.14;
 
   const wordStates = new WeakMap();
 
@@ -149,26 +102,14 @@
     localX = e.clientX;
     localY = e.clientY;
 
-    // gradient position — cheap, do every move
-    radialGrad.setAttribute('cx', e.clientX);
-    radialGrad.setAttribute('cy', e.clientY);
-
-    // throttled grain turbulence update
-    const now = Date.now();
-    if (now - lastGrainUpdate > GRAIN_THROTTLE) {
-      lastGrainUpdate = now;
-      const dx = e.clientX - lastGrainX;
-      const dy = e.clientY - lastGrainY;
-      const speed = Math.sqrt(dx*dx + dy*dy);
-      lastGrainX = e.clientX;
-      lastGrainY = e.clientY;
-
-      if (speed > 4) {
-        targetFreq = 0.72 + Math.min(speed * 0.003, 0.14);
-        grainSeed = (grainSeed + 1) % 200;
-        turbulence.setAttribute('seed', grainSeed);
-        if (!grainRaf) grainRaf = requestAnimationFrame(animateGrain);
-      }
+    // shift grain seed when cursor crosses cell boundary
+    const cx = Math.floor(e.clientX / SEED_CELL);
+    const cy = Math.floor(e.clientY / SEED_CELL);
+    if (cx !== lastSeedX || cy !== lastSeedY) {
+      lastSeedX = cx;
+      lastSeedY = cy;
+      grainSeed = (grainSeed + 1) % 200;
+      turbulence.setAttribute('seed', grainSeed);
     }
 
     if (!wordRaf) wordRaf = requestAnimationFrame(tickWords);
@@ -182,7 +123,6 @@
       ...Object.values(remoteCursorPositions)
     ];
 
-    // only process visible word units
     document.querySelectorAll('.word-unit').forEach(word => {
       const r = word.getBoundingClientRect();
       if (r.width === 0 || r.bottom < 0 || r.top > window.innerHeight) return;

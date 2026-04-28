@@ -182,7 +182,7 @@ function distortCanvas(canvas, damage) {
     // chain the passes — but cap actual iterations at 12 for performance
     // we simulate 100 passes by lowering quality more aggressively per iteration
     const actualPasses = Math.min(12, passes);
-    const passQuality = Math.max(0.3, 0.98 - (passes / 100) * 0.65);
+    const passQuality = Math.max(0.3, 0.98 - (passes / 20) * 0.65);
 
     let p = Promise.resolve(off);
     for (let i = 0; i < actualPasses; i++) {

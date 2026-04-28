@@ -92,6 +92,24 @@ function initSocket() {
     console.warn('Socket failed, falling back to Supabase:', err.message);
     if (!socketConnected) loadFromSupabase();
   });
+
+  socket.on('image_update', (data) => {
+  // find canvas with matching src and update it
+  document.querySelectorAll('.distort-canvas').forEach(canvas => {
+    const src = canvas.dataset.src || canvas.dataset.originalSrc;
+    // match by filename
+    if (src && src.split('/').pop() === data.filename.split('/').pop()) {
+      const img = new Image();
+      img.onload = () => {
+        canvas._originalSrc = data.data;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      };
+      img.src = data.data;
+    }
+  });
+});
 }
 
 // ---- Supabase fallback ----
@@ -182,7 +200,7 @@ function distortCanvas(canvas, damage) {
     // chain the passes — but cap actual iterations at 12 for performance
     // we simulate 100 passes by lowering quality more aggressively per iteration
     const actualPasses = Math.min(12, passes);
-    const passQuality = Math.max(0.3, 0.98 - (passes / 10) * 0.65);
+    const passQuality = Math.max(0.3, 0.98 - (passes / 100) * 0.65);
 
     let p = Promise.resolve(off);
     for (let i = 0; i < actualPasses; i++) {
@@ -246,6 +264,16 @@ function initCanvases() {
     };
 
     img.src = src;
+  });
+}
+
+function registerImagesWithServer() {
+  document.querySelectorAll('.distort-canvas').forEach(canvas => {
+    const src = canvas.dataset.src;
+    if (src && socket && socketConnected) {
+      const filename = src.split('/').pop();
+      socket.emit('register_image', { filename });
+    }
   });
 }
 

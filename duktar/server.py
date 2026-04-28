@@ -1,24 +1,21 @@
 """
 server.py — Dukhtar, Dispossessed
-Flask-SocketIO live damage layer.
+Flask-SocketIO live damage layer + server-side databend image corruption.
 """
 
-from flask import Flask
+from flask import Flask, send_file, jsonify
 from flask_socketio import SocketIO, emit
 import json
 import math
+import random
+import base64
+import io
+import os
 import requests
 import threading
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dukhtar-secret-change-in-prod'
-
-ALLOWED_ORIGINS = [
-    "http://localhost:5500",
-    "http://127.0.0.1:5500",
-    "http://localhost:3000",
-    "https://annazimmerdesign.github.io",
-]
 
 socketio = SocketIO(
     app,
@@ -52,11 +49,232 @@ connected_clients = 0
 _save_timer = None
 _save_lock = threading.Lock()
 
-# ---- Health check route (keeps Render warm) ----
+# ---- Databend image state ----
+# Stores the current bent version of each image as raw bytes.
+# Key: image filename (e.g. "image1.jpg")
+# Value: bytearray of the current corrupted JPEG
+bent_images = {}
+
+# How many total databend passes before fully corrupted
+MAX_BEND_PASSES = 100
+
+# Track how many passes each image has had
+bend_pass_counts = {}
+
+# Damage threshold between bend passes — each 0.01 of average damage = 1 pass
+BEND_DAMAGE_STEP = 0.01
+
+# Last average damage level when we last bent each image
+last_bend_damage = {}
+
+
+# ---- Databend core ----
+
+def databend(data: bytearray, intensity: float, seed: int) -> bytearray:
+    """
+    Corrupt JPEG bytes between header and EOI marker.
+    Intensity 0.0–1.0 controls how many bytes get touched.
+    Seed ensures reproducibility at the same damage level.
+    """
+    result = bytearray(data)
+    
+    # Find a safe start point — skip JPEG header (SOI + APP markers)
+    # Scan for the start of image data (after first ~500 bytes)
+    start = min(500, len(result) // 4)
+    end = len(result) - 2  # leave EOI marker (FF D9) intact
+    
+    if end <= start:
+        return result
+    
+    rng = random.Random(seed)
+    num_corruptions = max(1, int((end - start) * intensity * 0.003))
+    
+    for _ in range(num_corruptions):
+        pos = rng.randint(start, end)
+        action = rng.random()
+        
+        if action < 0.4:
+            # replace byte with random value
+            result[pos] = rng.randint(0, 255)
+        elif action < 0.65:
+            # duplicate a nearby byte (smearing)
+            src = max(start, pos - rng.randint(1, 50))
+            result[pos] = result[src]
+        elif action < 0.85:
+            # zero out (creates black bands)
+            result[pos] = 0
+        else:
+            # flip bits (creates color inversion artifacts)
+            result[pos] ^= 0xFF
+    
+    return result
+
+
+def get_image_bytes(filename: str) -> bytearray | None:
+    """Load original image from disk."""
+    # Try relative to server.py location
+    paths = [
+        os.path.join(os.path.dirname(__file__), 'images', filename),
+        os.path.join(os.path.dirname(__file__), filename),
+        os.path.join('images', filename),
+        filename,
+    ]
+    for path in paths:
+        if os.path.exists(path):
+            with open(path, 'rb') as f:
+                return bytearray(f.read())
+    return None
+
+
+def get_average_damage() -> float:
+    """Get mean damage across the whole map."""
+    if not damage_map:
+        return 0.0
+    return sum(damage_map) / len(damage_map)
+
+
+def maybe_bend_images():
+    """
+    Check if average damage has crossed a new threshold
+    and apply one databend pass to all tracked images if so.
+    """
+    avg = get_average_damage()
+    
+    for filename in list(bent_images.keys()):
+        last = last_bend_damage.get(filename, 0.0)
+        if avg - last < BEND_DAMAGE_STEP:
+            continue
+        
+        passes = bend_pass_counts.get(filename, 0)
+        if passes >= MAX_BEND_PASSES:
+            continue
+        
+        # apply one pass — intensity scales with pass count
+        intensity = 0.3 + (passes / MAX_BEND_PASSES) * 0.7
+        seed = passes * 7919 + hash(filename) % 100000
+        
+        bent_images[filename] = databend(bent_images[filename], intensity, seed)
+        bend_pass_counts[filename] = passes + 1
+        last_bend_damage[filename] = avg
+        
+        print(f'Bent {filename}: pass {passes + 1}, intensity {intensity:.2f}, avg_damage {avg:.4f}')
+        
+        # broadcast the new bent image to all clients
+        bent_b64 = base64.b64encode(bytes(bent_images[filename])).decode('utf-8')
+        socketio.emit('image_update', {
+            'filename': filename,
+            'data': f'data:image/jpeg;base64,{bent_b64}',
+            'passes': passes + 1,
+        })
+        
+        # save to Supabase
+        save_bent_image_to_supabase(filename, bent_b64, passes + 1)
+
+
+def save_bent_image_to_supabase(filename: str, b64: str, passes: int):
+    """Save bent image state to Supabase image_state table."""
+    try:
+        # check if row exists
+        res = requests.get(
+            f'{SUPABASE_URL}/rest/v1/image_state?filename=eq.{filename}&select=id',
+            headers=HEADERS, timeout=8
+        )
+        existing = res.json()
+        
+        payload = {
+            'filename': filename,
+            'image_data': b64,
+            'bend_passes': passes,
+        }
+        
+        if existing:
+            requests.patch(
+                f'{SUPABASE_URL}/rest/v1/image_state?filename=eq.{filename}',
+                headers=HEADERS, json=payload, timeout=8
+            )
+        else:
+            requests.post(
+                f'{SUPABASE_URL}/rest/v1/image_state',
+                headers=HEADERS, json=payload, timeout=8
+            )
+    except Exception as e:
+        print(f'Failed to save bent image {filename}: {e}')
+
+
+def load_bent_images_from_supabase():
+    """Load previously bent image states from Supabase on boot."""
+    try:
+        res = requests.get(
+            f'{SUPABASE_URL}/rest/v1/image_state?select=filename,image_data,bend_passes',
+            headers=HEADERS, timeout=8
+        )
+        rows = res.json()
+        for row in rows:
+            fn = row.get('filename')
+            b64 = row.get('image_data')
+            passes = row.get('bend_passes', 0)
+            if fn and b64:
+                bent_images[fn] = bytearray(base64.b64decode(b64))
+                bend_pass_counts[fn] = passes
+                print(f'Loaded bent image {fn}: {passes} passes')
+    except Exception as e:
+        print(f'Failed to load bent images: {e}')
+
+
+def register_image(filename: str):
+    """Register an image for databending if not already tracked."""
+    if filename in bent_images:
+        return
+    original = get_image_bytes(filename)
+    if original:
+        bent_images[filename] = original
+        bend_pass_counts[filename] = 0
+        last_bend_damage[filename] = 0.0
+        print(f'Registered image for databending: {filename}')
+    else:
+        print(f'Could not load image for databending: {filename}')
+
+
+# ---- HTTP routes ----
 
 @app.route('/health')
 def health():
-    return {'status': 'ok', 'interactions': interactions, 'connected': connected_clients}
+    return jsonify({
+        'status': 'ok',
+        'interactions': interactions,
+        'connected': connected_clients,
+        'avg_damage': round(get_average_damage(), 4),
+        'bent_images': {k: v for k, v in bend_pass_counts.items()},
+    })
+
+
+@app.route('/image/<filename>')
+def serve_image(filename):
+    """Serve the current bent version of an image."""
+    # sanitize filename
+    filename = os.path.basename(filename)
+    
+    if filename not in bent_images:
+        register_image(filename)
+    
+    if filename in bent_images:
+        img_bytes = bytes(bent_images[filename])
+        return send_file(
+            io.BytesIO(img_bytes),
+            mimetype='image/jpeg',
+            as_attachment=False,
+        )
+    
+    return jsonify({'error': 'image not found'}), 404
+
+
+@app.route('/register/<filename>')
+def register_endpoint(filename):
+    """Register an image for databending."""
+    filename = os.path.basename(filename)
+    register_image(filename)
+    return jsonify({'registered': filename, 'passes': bend_pass_counts.get(filename, 0)})
+
 
 # ---- Supabase I/O ----
 
@@ -65,8 +283,7 @@ def load_from_supabase():
     try:
         res = requests.get(
             f'{SUPABASE_URL}/rest/v1/archive_state?id=eq.1&select=passes,damage_map',
-            headers=HEADERS,
-            timeout=8
+            headers=HEADERS, timeout=8
         )
         data = res.json()
         if data:
@@ -77,10 +294,11 @@ def load_from_supabase():
                 if len(loaded) == GRID_W * GRID_H:
                     damage_map = loaded
                 else:
-                    print(f'Damage map size mismatch ({len(loaded)} vs {GRID_W * GRID_H}) — starting fresh')
+                    print(f'Damage map size mismatch — starting fresh')
         print(f'Loaded from Supabase: {interactions} interactions')
     except Exception as e:
-        print(f'Supabase load failed (starting fresh): {e}')
+        print(f'Supabase load failed: {e}')
+
 
 def save_to_supabase():
     try:
@@ -90,9 +308,9 @@ def save_to_supabase():
             json={'passes': interactions, 'damage_map': json.dumps(damage_map)},
             timeout=8
         )
-        print(f'Saved to Supabase: {interactions} interactions')
     except Exception as e:
         print(f'Supabase save failed: {e}')
+
 
 def schedule_save():
     global _save_timer
@@ -101,6 +319,7 @@ def schedule_save():
             _save_timer.cancel()
         _save_timer = threading.Timer(2.0, save_to_supabase)
         _save_timer.start()
+
 
 # ---- Damage logic ----
 
@@ -116,21 +335,29 @@ def apply_damage(gx, gy):
             idx = ny * GRID_W + nx
             damage_map[idx] = min(MAX_DAMAGE, damage_map[idx] + DAMAGE_PER_PASS * (1 - dist / BRUSH_RADIUS))
 
+
 # ---- SocketIO events ----
 
 @socketio.on('connect')
 def on_connect():
     global connected_clients
     connected_clients += 1
-    # Send full state to new client
     emit('init', {
         'damage_map': damage_map,
         'interactions': interactions,
-        'connected': connected_clients
+        'connected': connected_clients,
     })
-    # Broadcast updated presence to everyone including new client
+    # send current bent images to new client
+    for filename, data in bent_images.items():
+        b64 = base64.b64encode(bytes(data)).decode('utf-8')
+        emit('image_update', {
+            'filename': filename,
+            'data': f'data:image/jpeg;base64,{b64}',
+            'passes': bend_pass_counts.get(filename, 0),
+        })
     socketio.emit('presence', {'connected': connected_clients})
     print(f'Client connected. Total: {connected_clients}')
+
 
 @socketio.on('disconnect')
 def on_disconnect():
@@ -138,6 +365,7 @@ def on_disconnect():
     connected_clients = max(0, connected_clients - 1)
     socketio.emit('presence', {'connected': connected_clients})
     print(f'Client disconnected. Total: {connected_clients}')
+
 
 @socketio.on('cursor_move')
 def on_cursor_move(data):
@@ -160,15 +388,15 @@ def on_cursor_move(data):
         'affected': affected,
         'interactions': interactions,
         'gx': gx,
-        'gy': gy
+        'gy': gy,
     }, broadcast=True)
 
     schedule_save()
+    maybe_bend_images()
 
 
 @socketio.on('cursor_position')
 def on_cursor_position(data):
-    from flask_socketio import ConnectionRefusedError
     from flask import request
     emit('remote_cursor', {
         'id': request.sid,
@@ -176,18 +404,29 @@ def on_cursor_position(data):
         'ny': data.get('ny', 0),
     }, broadcast=True, include_self=False)
 
+
+@socketio.on('register_image')
+def on_register_image(data):
+    """Client tells server which images to track for databending."""
+    filename = os.path.basename(data.get('filename', ''))
+    if filename:
+        register_image(filename)
+
+
 @socketio.on('request_full_map')
 def on_request_full_map():
     emit('init', {
         'damage_map': damage_map,
         'interactions': interactions,
-        'connected': connected_clients
+        'connected': connected_clients,
     })
+
 
 # ---- Boot ----
 
 if __name__ == '__main__':
     print('Loading state from Supabase...')
     load_from_supabase()
+    load_bent_images_from_supabase()
     print('Starting server...')
     socketio.run(app, host='0.0.0.0', port=5009, debug=False)

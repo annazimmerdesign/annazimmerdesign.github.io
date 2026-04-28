@@ -5,97 +5,98 @@
 
 (function () {
 
-  // ---- Grain overlay ----
+  // // ---- Grain overlay ----
+  ////ABANDONED FOR NOW
 
-  const svgNS = 'http://www.w3.org/2000/svg';
-  const overlay = document.createElementNS(svgNS, 'svg');
-  overlay.style.cssText = `
-    position: fixed; top: 0; left: 0;
-    width: 100vw; height: 100vh;
-    pointer-events: none; z-index: 5;
-    will-change: auto;
-  `;
+  // const svgNS = 'http://www.w3.org/2000/svg';
+  // const overlay = document.createElementNS(svgNS, 'svg');
+  // overlay.style.cssText = `
+  //   position: fixed; top: 0; left: 0;
+  //   width: 100vw; height: 100vh;
+  //   pointer-events: none; z-index: 5;
+  //   will-change: auto;
+  // `;
 
-  const defs = document.createElementNS(svgNS, 'defs');
-  const grainFilter = document.createElementNS(svgNS, 'filter');
-  grainFilter.setAttribute('id', 'grain-filter');
-  grainFilter.setAttribute('x', '0%');
-  grainFilter.setAttribute('y', '0%');
-  grainFilter.setAttribute('width', '100%');
-  grainFilter.setAttribute('height', '100%');
+  // const defs = document.createElementNS(svgNS, 'defs');
+  // const grainFilter = document.createElementNS(svgNS, 'filter');
+  // grainFilter.setAttribute('id', 'grain-filter');
+  // grainFilter.setAttribute('x', '0%');
+  // grainFilter.setAttribute('y', '0%');
+  // grainFilter.setAttribute('width', '100%');
+  // grainFilter.setAttribute('height', '100%');
 
-  const turbulence = document.createElementNS(svgNS, 'feTurbulence');
-  turbulence.setAttribute('type', 'fractalNoise');
-  turbulence.setAttribute('baseFrequency', '0.68');
-  turbulence.setAttribute('numOctaves', '3');
-  turbulence.setAttribute('seed', '8');
-  turbulence.setAttribute('stitchTiles', 'stitch');
+  // const turbulence = document.createElementNS(svgNS, 'feTurbulence');
+  // turbulence.setAttribute('type', 'fractalNoise');
+  // turbulence.setAttribute('baseFrequency', '0.68');
+  // turbulence.setAttribute('numOctaves', '3');
+  // turbulence.setAttribute('seed', '8');
+  // turbulence.setAttribute('stitchTiles', 'stitch');
 
-  const saturate = document.createElementNS(svgNS, 'feColorMatrix');
-  saturate.setAttribute('type', 'saturate');
-  saturate.setAttribute('values', '0');
+  // const saturate = document.createElementNS(svgNS, 'feColorMatrix');
+  // saturate.setAttribute('type', 'saturate');
+  // saturate.setAttribute('values', '0');
 
-  grainFilter.appendChild(turbulence);
-  grainFilter.appendChild(saturate);
-  defs.appendChild(grainFilter);
-  overlay.appendChild(defs);
+  // grainFilter.appendChild(turbulence);
+  // grainFilter.appendChild(saturate);
+  // defs.appendChild(grainFilter);
+  // overlay.appendChild(defs);
 
-  const grainRect = document.createElementNS(svgNS, 'rect');
-  grainRect.setAttribute('width', '100%');
-  grainRect.setAttribute('height', '100%');
-  grainRect.setAttribute('fill', '#1c1208');
-  grainRect.setAttribute('filter', 'url(#grain-filter)');
-  grainRect.setAttribute('opacity', '0.14');
-  overlay.appendChild(grainRect);
+  // const grainRect = document.createElementNS(svgNS, 'rect');
+  // grainRect.setAttribute('width', '100%');
+  // grainRect.setAttribute('height', '100%');
+  // grainRect.setAttribute('fill', '#1c1208');
+  // grainRect.setAttribute('filter', 'url(#grain-filter)');
+  // grainRect.setAttribute('opacity', '0.14');
+  // overlay.appendChild(grainRect);
 
-  document.body.appendChild(overlay);
+  // document.body.appendChild(overlay);
 
-  // ---- Persistent cursor trail ----
-  const trailCanvas = document.createElement('canvas');
-  trailCanvas.style.cssText = `
-    position: fixed; top: 0; left: 0;
-    width: 100vw; height: 100vh;
-    pointer-events: none; z-index: 6;
-    mix-blend-mode: screen;
-  `;
-  trailCanvas.width = window.innerWidth;
-  trailCanvas.height = window.innerHeight;
-  window.addEventListener('resize', () => {
-    const tmp = document.createElement('canvas');
-    tmp.width = trailCanvas.width; tmp.height = trailCanvas.height;
-    tmp.getContext('2d').drawImage(trailCanvas, 0, 0);
-    trailCanvas.width = window.innerWidth;
-    trailCanvas.height = window.innerHeight;
-    trailCanvas.getContext('2d').drawImage(tmp, 0, 0);
-  });
-  document.body.appendChild(trailCanvas);
-  const trailCtx = trailCanvas.getContext('2d');
-  let lastTrailX = -1, lastTrailY = -1;
+  // // ---- Persistent cursor trail ----
+  // const trailCanvas = document.createElement('canvas');
+  // trailCanvas.style.cssText = `
+  //   position: fixed; top: 0; left: 0;
+  //   width: 100vw; height: 100vh;
+  //   pointer-events: none; z-index: 6;
+  //   mix-blend-mode: screen;
+  // `;
+  // trailCanvas.width = window.innerWidth;
+  // trailCanvas.height = window.innerHeight;
+  // window.addEventListener('resize', () => {
+  //   const tmp = document.createElement('canvas');
+  //   tmp.width = trailCanvas.width; tmp.height = trailCanvas.height;
+  //   tmp.getContext('2d').drawImage(trailCanvas, 0, 0);
+  //   trailCanvas.width = window.innerWidth;
+  //   trailCanvas.height = window.innerHeight;
+  //   trailCanvas.getContext('2d').drawImage(tmp, 0, 0);
+  // });
+  // document.body.appendChild(trailCanvas);
+  // const trailCtx = trailCanvas.getContext('2d');
+  // let lastTrailX = -1, lastTrailY = -1;
 
-  // fade trail very slowly — full persistence then gradual clearing
-  (function fadeLoop() {
-    trailCtx.fillStyle = 'rgba(0,0,0,0.006)';
-    trailCtx.fillRect(0, 0, trailCanvas.width, trailCanvas.height);
-    requestAnimationFrame(fadeLoop);
-  })();
+  // // fade trail very slowly — full persistence then gradual clearing
+  // (function fadeLoop() {
+  //   trailCtx.fillStyle = 'rgba(0,0,0,0.006)';
+  //   trailCtx.fillRect(0, 0, trailCanvas.width, trailCanvas.height);
+  //   requestAnimationFrame(fadeLoop);
+  // })();
 
-  function drawTrail(x, y, isRemote) {
-    if (lastTrailX < 0) { lastTrailX = x; lastTrailY = y; return; }
-    trailCtx.beginPath();
-    trailCtx.moveTo(lastTrailX, lastTrailY);
-    trailCtx.lineTo(x, y);
-    trailCtx.strokeStyle = isRemote ? 'rgba(200,185,160,0.06)' : 'rgba(232,220,200,0.12)';
-    trailCtx.lineWidth = isRemote ? 1 : 1.5;
-    trailCtx.lineCap = 'round';
-    trailCtx.stroke();
-    if (!isRemote) { lastTrailX = x; lastTrailY = y; }
-  }
+  // function drawTrail(x, y, isRemote) {
+  //   if (lastTrailX < 0) { lastTrailX = x; lastTrailY = y; return; }
+  //   trailCtx.beginPath();
+  //   trailCtx.moveTo(lastTrailX, lastTrailY);
+  //   trailCtx.lineTo(x, y);
+  //   trailCtx.strokeStyle = isRemote ? 'rgba(200,185,160,0.06)' : 'rgba(232,220,200,0.12)';
+  //   trailCtx.lineWidth = isRemote ? 1 : 1.5;
+  //   trailCtx.lineCap = 'round';
+  //   trailCtx.stroke();
+  //   if (!isRemote) { lastTrailX = x; lastTrailY = y; }
+  // }
 
 
-  // grain state — only seed shifts, nothing translates
-  let grainSeed = 8;
-  let lastSeedX = -999, lastSeedY = -999;
-  const SEED_CELL = 40; // px — grain shifts when cursor crosses a cell boundary
+  // // grain state — only seed shifts, nothing translates
+  // let grainSeed = 8;
+  // let lastSeedX = -999, lastSeedY = -999;
+  // const SEED_CELL = 40; // px — grain shifts when cursor crosses a cell boundary
 
   // ---- Word wrapping ----
 

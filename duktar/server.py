@@ -62,7 +62,7 @@ MAX_BEND_PASSES = 100
 bend_pass_counts = {}
 
 # Damage threshold between bend passes — each 0.01 of average damage = 1 pass
-BEND_DAMAGE_STEP = 0.01
+BEND_DAMAGE_STEP = 0.005
 
 # Last average damage level when we last bent each image
 last_bend_damage = {}
@@ -87,25 +87,32 @@ def databend(data: bytearray, intensity: float, seed: int) -> bytearray:
         return result
     
     rng = random.Random(seed)
-    num_corruptions = max(1, int((end - start) * intensity * 0.003))
+    num_corruptions = max(1, int((end - start) * intensity * 0.012))
     
     for _ in range(num_corruptions):
         pos = rng.randint(start, end)
         action = rng.random()
         
-        if action < 0.4:
+        if action < 0.3:
             # replace byte with random value
             result[pos] = rng.randint(0, 255)
-        elif action < 0.65:
+        elif action < 0.5:
             # duplicate a nearby byte (smearing)
-            src = max(start, pos - rng.randint(1, 50))
+            src = max(start, pos - rng.randint(1, 80))
             result[pos] = result[src]
-        elif action < 0.85:
+        elif action < 0.65:
             # zero out (creates black bands)
             result[pos] = 0
-        else:
+        elif action < 0.8:
             # flip bits (creates color inversion artifacts)
             result[pos] ^= 0xFF
+        else:
+            # corrupt a whole run of bytes — creates horizontal banding
+            run = rng.randint(4, 40)
+            val = rng.randint(0, 255)
+            for j in range(run):
+                if pos + j < end:
+                    result[pos + j] = val
     
     return result
 

@@ -354,8 +354,10 @@ def on_connect():
             'data': f'data:image/jpeg;base64,{b64}',
             'passes': bend_pass_counts.get(filename, 0),
         })
+    print(f'Current bent images: {list(bent_images.keys())}')
     socketio.emit('presence', {'connected': connected_clients})
     print(f'Client connected. Total: {connected_clients}')
+
 
 
 @socketio.on('disconnect')

@@ -3,6 +3,89 @@
 // No opacity changes, pure positional recoil. "Words scared of the cursor."
 // Remote cursors from other visitors rendered as faint dots with same effect.
 
+// ---- Grain overlay with cursor clearing ----
+
+const svgNS = 'http://www.w3.org/2000/svg';
+const overlay = document.createElementNS(svgNS, 'svg');
+overlay.style.cssText = `
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  pointer-events: none;
+  z-index: 5;
+`;
+
+const defs = document.createElementNS(svgNS, 'defs');
+
+// grain filter
+const grainFilter = document.createElementNS(svgNS, 'filter');
+grainFilter.setAttribute('id', 'grain-filter');
+const turbulence = document.createElementNS(svgNS, 'feTurbulence');
+turbulence.setAttribute('type', 'fractalNoise');
+turbulence.setAttribute('baseFrequency', '0.72');
+turbulence.setAttribute('numOctaves', '4');
+turbulence.setAttribute('seed', '8');
+turbulence.setAttribute('stitchTiles', 'stitch');
+const saturate = document.createElementNS(svgNS, 'feColorMatrix');
+saturate.setAttribute('type', 'saturate');
+saturate.setAttribute('values', '0');
+grainFilter.appendChild(turbulence);
+grainFilter.appendChild(saturate);
+
+// radial gradient mask — clears around cursor position
+const radialGrad = document.createElementNS(svgNS, 'radialGradient');
+radialGrad.setAttribute('id', 'cursor-clear');
+radialGrad.setAttribute('gradientUnits', 'userSpaceOnUse');
+radialGrad.setAttribute('cx', '-999');
+radialGrad.setAttribute('cy', '-999');
+radialGrad.setAttribute('r', '120');
+const stop1 = document.createElementNS(svgNS, 'stop');
+stop1.setAttribute('offset', '0%');
+stop1.setAttribute('stop-color', 'white');
+stop1.setAttribute('stop-opacity', '0');  // transparent at center = grain hidden
+const stop2 = document.createElementNS(svgNS, 'stop');
+stop2.setAttribute('offset', '60%');
+stop2.setAttribute('stop-color', 'white');
+stop2.setAttribute('stop-opacity', '0');
+const stop3 = document.createElementNS(svgNS, 'stop');
+stop3.setAttribute('offset', '100%');
+stop3.setAttribute('stop-color', 'white');
+stop3.setAttribute('stop-opacity', '1');  // opaque at edges = grain visible
+radialGrad.appendChild(stop1);
+radialGrad.appendChild(stop2);
+radialGrad.appendChild(stop3);
+
+const mask = document.createElementNS(svgNS, 'mask');
+mask.setAttribute('id', 'grain-mask');
+const maskRect = document.createElementNS(svgNS, 'rect');
+maskRect.setAttribute('width', '100%');
+maskRect.setAttribute('height', '100%');
+maskRect.setAttribute('fill', 'url(#cursor-clear)');
+mask.appendChild(maskRect);
+
+defs.appendChild(grainFilter);
+defs.appendChild(radialGrad);
+defs.appendChild(mask);
+overlay.appendChild(defs);
+
+const grainRect = document.createElementNS(svgNS, 'rect');
+grainRect.setAttribute('width', '100%');
+grainRect.setAttribute('height', '100%');
+grainRect.setAttribute('fill', '#1c1208');
+grainRect.setAttribute('filter', 'url(#grain-filter)');
+grainRect.setAttribute('mask', 'url(#grain-mask)');
+grainRect.setAttribute('opacity', '0.18');
+overlay.appendChild(grainRect);
+
+document.body.appendChild(overlay);
+
+// update gradient center on mousemove
+document.addEventListener('mousemove', e => {
+  radialGrad.setAttribute('cx', e.clientX);
+  radialGrad.setAttribute('cy', e.clientY);
+});
+
+
 (function () {
 
   // ---- Word wrapping ----

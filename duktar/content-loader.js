@@ -32,11 +32,18 @@ if (c.images && c.images.length) {
   const entriesContainer = document.getElementById('entries-container');
   if (entriesContainer && c.entries) {
     entriesContainer.innerHTML = c.entries.map(e => `
-      <div class="entry">
-        <div class="entry-date">Entry ${e.id} — ${e.date} — ${e.type}</div>
-        <p>${e.text}</p>
-      </div>
-    `).join('');
+  <div class="entry" data-degrade="0">
+    <div class="entry-date">Entry ${e.id} — ${e.date} — ${e.type}</div>
+
+    <div class="entry-text collapsed">
+      ${e.text}
+    </div>
+
+    <div class="entry-controls">
+      <span class="read-more">[ expand record ]</span>
+    </div>
+  </div>
+`).join('');
   }
 
   // related records panel
@@ -87,4 +94,22 @@ document.dispatchEvent(new Event('contentLoaded'));
   }, 100);
 }
 
+document.addEventListener("click", (e) => {
+  if (e.target.classList.contains("read-more")) {
+    const text = e.target.previousElementSibling;
+
+    text.classList.toggle("expanded");
+
+    e.target.textContent = text.classList.contains("expanded")
+      ? "collapse"
+      : "read more";
+  }
+});
+
+document.querySelectorAll(".entry-text").forEach(el => {
+  const variance = Math.random() * 2 + 3.5; // 3.5–5.5 lines
+  el.style.maxHeight = variance + "em";
+});
+
 loadContent();
+

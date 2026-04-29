@@ -61,6 +61,17 @@ function initSocket() {
     interactions = data.interactions || interactions;
     updateDisplay();
 
+    const now = Date.now();
+    if (now - lastDistortTime > 120) {
+      lastDistortTime = now;
+      document.querySelectorAll('.distort-canvas').forEach(canvas => {
+        const r = canvas.getBoundingClientRect();
+        const cx = r.left + r.width / 2;
+        const cy = r.top + r.height / 2;
+        const damage = getDamageAt(cx, cy);
+        if (damage > 0.01) distortCanvas(canvas, damage);
+      });
+    }
   });
 
   socket.on('presence', (data) => {
@@ -138,7 +149,42 @@ function getDamageAt(clientX, clientY) {
   return damageMap[gy * GRID_W + gx];
 }
 
-// Canvas distortion handled server-side via databend
+// ---- Client-side canvas distortion ----
+
+function distortCanvas(canvas, damage) {
+  if (!canvas._loaded || !canvas._originalSrc) return;
+  if (damage < 0.02) return;
+
+  const fresh = new Image();
+  fresh.onload = () => {
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    const passes = Math.min(12, Math.floor(damage * 14));
+    if (passes === 0) { ctx.drawImage(fresh, 0, 0, w, h); return; }
+    const passQuality = Math.max(0.3, 0.98 - damage * 0.65);
+    const off = document.createElement('canvas');
+    off.width = w; off.height = h;
+    off.getContext('2d').drawImage(fresh, 0, 0, w, h);
+    let p = Promise.resolve(off);
+    for (let i = 0; i < passes; i++) {
+      p = p.then(c => new Promise(resolve => {
+        const url = c.toDataURL('image/jpeg', passQuality);
+        const img = new Image();
+        img.onload = () => {
+          const tmp = document.createElement('canvas');
+          tmp.width = w; tmp.height = h;
+          tmp.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(tmp);
+        };
+        img.src = url;
+      }));
+    }
+    p.then(final => { ctx.clearRect(0, 0, w, h); ctx.drawImage(final, 0, 0, w, h); });
+  };
+  fresh.src = canvas._originalSrc;
+}
+
+let lastDistortTime = 0;
 
 // ---- Canvas init ----
 
@@ -230,7 +276,21 @@ document.addEventListener('mousemove', e => {
     updateDisplay();
   }
 
-
+  // distort canvases near cursor
+  const now = Date.now();
+  if (now - lastDistortTime > 120) {
+    lastDistortTime = now;
+    document.querySelectorAll('.distort-canvas').forEach(canvas => {
+      const r = canvas.getBoundingClientRect();
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      const dist = Math.sqrt((e.clientX - cx) ** 2 + (e.clientY - cy) ** 2);
+      if (dist < 350) {
+        const damage = getDamageAt(e.clientX, e.clientY);
+        if (damage > 0.01) distortCanvas(canvas, damage);
+      }
+    });
+  }
 });
 
 // ---- Reset ----

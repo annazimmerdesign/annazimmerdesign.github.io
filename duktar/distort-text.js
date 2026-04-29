@@ -117,13 +117,21 @@ function applyCorruptions(words, steps, rng) {
 // per-paragraph cache: stores the last damage level and resulting corrupted words
 const paragraphCache = new WeakMap();
 
-const DAMAGE_STEP = 0.001; // minimum damage change before recalculating
+const DAMAGE_STEP = 0.001;
+
+window._cursorX = window.innerWidth / 2;
+window._cursorY = window.innerHeight / 2;
+document.addEventListener('mousemove', e => {
+  window._cursorX = e.clientX;
+  window._cursorY = e.clientY;
+});
 
 function distortText() {
-  document.querySelectorAll('.entry p, .text-block p, .log-entry p, .about-para').forEach(p => {
+  document.querySelectorAll('.entry p, .entry-text, .text-block p, .log-entry p, .about-para').forEach(p => {
 
     if (!paragraphCache.has(p)) {
       const original = p.textContent.trim();
+      if (!original) return;
       paragraphCache.set(p, {
         original,
         originalWords: original.split(/(\s+)/),
@@ -138,17 +146,20 @@ function distortText() {
 
     if (rect.bottom < 0 || rect.top > window.innerHeight) return;
 
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    const damage = typeof getDamageAt === 'function' ? getDamageAt(cx, cy) : 0;
+    // Sample at cursor position — not paragraph center.
+    // The damage grid reflects where users have been; sampling at the paragraph's
+    // own center means text in the column never sees damage from cursor movement
+    // elsewhere on the page.
+    const damage = typeof getDamageAt === 'function'
+      ? getDamageAt(window._cursorX, window._cursorY)
+      : 0;
 
     if (damage - cache.lastDamage < DAMAGE_STEP) return;
 
     const steps = stepsForDamage(damage);
     if (steps === cache.lastSteps) return;
 
-    // regenerate from original with deterministic seed + current step count
-    const rng = lcg(cache.seed + steps * 7919); // prime offset per step level
+    const rng = lcg(cache.seed + steps * 7919);
     const corrupted = applyCorruptions(cache.originalWords, steps, rng);
 
     cache.lastDamage = damage;

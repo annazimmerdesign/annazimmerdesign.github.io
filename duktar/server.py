@@ -58,7 +58,7 @@ _save_lock = threading.Lock()
 bent_images = {}
 
 # How many total databend passes before fully corrupted
-MAX_BEND_PASSES = 60
+MAX_BEND_PASSES = 120
 
 # Track how many passes each image has had
 bend_pass_counts = {}

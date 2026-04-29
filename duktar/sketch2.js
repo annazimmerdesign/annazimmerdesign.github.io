@@ -61,17 +61,6 @@ function initSocket() {
     interactions = data.interactions || interactions;
     updateDisplay();
 
-    const now = Date.now();
-    if (now - lastDistortTime > 120) {
-      lastDistortTime = now;
-      document.querySelectorAll('.distort-canvas').forEach(canvas => {
-        const r = canvas.getBoundingClientRect();
-        const cx = r.left + r.width / 2;
-        const cy = r.top + r.height / 2;
-        const damage = getDamageAt(cx, cy);
-        if (damage > 0.01) distortCanvas(canvas, damage);
-      });
-    }
   });
 
   socket.on('presence', (data) => {
@@ -154,7 +143,6 @@ function getDamageAt(clientX, clientY) {
 function distortCanvas(canvas, damage) {
   if (!canvas._loaded || !canvas._originalSrc) return;
   if (damage < 0.02) return;
-
   const fresh = new Image();
   fresh.onload = () => {
     const ctx = canvas.getContext('2d');
@@ -169,14 +157,14 @@ function distortCanvas(canvas, damage) {
     for (let i = 0; i < passes; i++) {
       p = p.then(c => new Promise(resolve => {
         const url = c.toDataURL('image/jpeg', passQuality);
-        const img = new Image();
-        img.onload = () => {
+        const img2 = new Image();
+        img2.onload = () => {
           const tmp = document.createElement('canvas');
           tmp.width = w; tmp.height = h;
-          tmp.getContext('2d').drawImage(img, 0, 0, w, h);
+          tmp.getContext('2d').drawImage(img2, 0, 0, w, h);
           resolve(tmp);
         };
-        img.src = url;
+        img2.src = url;
       }));
     }
     p.then(final => { ctx.clearRect(0, 0, w, h); ctx.drawImage(final, 0, 0, w, h); });
@@ -195,6 +183,8 @@ function initCanvases() {
     const src = canvas.dataset.src;
     if (!src) return;
 
+    const filename = src.split('/').pop();
+
     const img = new Image();
     img.onload = () => {
       const ratio = img.naturalHeight / img.naturalWidth;
@@ -203,7 +193,18 @@ function initCanvases() {
       canvas._originalSrc = src;
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
+      // register with server so it tracks this image for databending
+      if (socket && socketConnected) {
+        socket.emit('register_image', { filename });
+        socket.emit('request_bent_image', { filename });
+      }
 
+      // apply client-side distortion immediately based on accumulated damage
+      const r = canvas.getBoundingClientRect();
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      const damage = getDamageAt(cx, cy);
+      if (damage > 0.01) distortCanvas(canvas, damage);
     };
 
     img.onerror = () => {
@@ -276,16 +277,15 @@ document.addEventListener('mousemove', e => {
     updateDisplay();
   }
 
-  // distort canvases near cursor
   const now = Date.now();
-  if (now - lastDistortTime > 120) {
+  if (now - lastDistortTime > 150) {
     lastDistortTime = now;
     document.querySelectorAll('.distort-canvas').forEach(canvas => {
       const r = canvas.getBoundingClientRect();
       const cx = r.left + r.width / 2;
       const cy = r.top + r.height / 2;
       const dist = Math.sqrt((e.clientX - cx) ** 2 + (e.clientY - cy) ** 2);
-      if (dist < 350) {
+      if (dist < 400) {
         const damage = getDamageAt(e.clientX, e.clientY);
         if (damage > 0.01) distortCanvas(canvas, damage);
       }

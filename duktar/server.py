@@ -431,6 +431,23 @@ def on_register_image(data):
         register_image(filename)
 
 
+@socketio.on('request_bent_image')
+def on_request_bent_image(data):
+    """Client requests current bent state of a specific image."""
+    filename = os.path.basename(data.get('filename', ''))
+    if not filename:
+        return
+    if filename not in bent_images:
+        register_image(filename)
+    if filename in bent_images:
+        b64 = base64.b64encode(bytes(bent_images[filename])).decode('utf-8')
+        emit('image_update', {
+            'filename': filename,
+            'data': f'data:image/jpeg;base64,{b64}',
+            'passes': bend_pass_counts.get(filename, 0),
+        })
+
+
 @socketio.on('request_full_map')
 def on_request_full_map():
     emit('init', {

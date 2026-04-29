@@ -117,7 +117,7 @@ function applyCorruptions(words, steps, rng) {
 // per-paragraph cache: stores the last damage level and resulting corrupted words
 const paragraphCache = new WeakMap();
 
-const DAMAGE_STEP = 0.025; // minimum damage change before recalculating
+const DAMAGE_STEP = 0.001; // minimum damage change before recalculating
 
 function distortText() {
   document.querySelectorAll('.entry p, .text-block p, .log-entry p, .about-para').forEach(p => {

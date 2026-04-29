@@ -232,17 +232,21 @@ def load_bent_images_from_supabase():
     except Exception as e:
         print(f'Failed to load bent images: {e}')
 
-
 def register_image(filename: str):
-    """Register an image for databending if not already tracked."""
     if filename in bent_images:
         return
     original = get_image_bytes(filename)
     if original:
-        bent_images[filename] = original
-        bend_pass_counts[filename] = 0
-        last_bend_damage[filename] = 0.0
-        print(f'Registered image for databending: {filename}')
+        # apply accumulated bending up to current state in one shot
+        current_expected = min(MAX_BEND_PASSES, interactions // 200)
+        data = bytearray(original)
+        for p in range(current_expected):
+            intensity = 0.3 + (p / MAX_BEND_PASSES) * 0.7
+            seed = p * 7919 + hash(filename) % 100000
+            data = databend(data, intensity, seed)
+        bent_images[filename] = data
+        bend_pass_counts[filename] = current_expected
+        print(f'Registered {filename}: applied {current_expected} passes to match current state')
     else:
         print(f'Could not load image for databending: {filename}')
 

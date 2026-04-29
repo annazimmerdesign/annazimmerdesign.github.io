@@ -35,9 +35,11 @@ function initSocket() {
   });
 
   socket.on('connect', () => {
-    socketConnected = true;
-    console.log('Socket connected:', socket.id);
-  });
+  socketConnected = true;
+  console.log('Socket connected:', socket.id);
+  // register images now that socket is confirmed live
+  setTimeout(registerImagesWithServer, 500);
+});
 
   socket.on('disconnect', () => {
     socketConnected = false;

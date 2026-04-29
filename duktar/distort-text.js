@@ -119,13 +119,6 @@ const paragraphCache = new WeakMap();
 
 const DAMAGE_STEP = 0.001;
 
-window._cursorX = window.innerWidth / 2;
-window._cursorY = window.innerHeight / 2;
-document.addEventListener('mousemove', e => {
-  window._cursorX = e.clientX;
-  window._cursorY = e.clientY;
-});
-
 function distortText() {
   document.querySelectorAll('.entry p, .entry-text, .text-block p, .log-entry p, .about-para').forEach(p => {
 
@@ -146,13 +139,14 @@ function distortText() {
 
     if (rect.bottom < 0 || rect.top > window.innerHeight) return;
 
-    // Sample at cursor position — not paragraph center.
-    // The damage grid reflects where users have been; sampling at the paragraph's
-    // own center means text in the column never sees damage from cursor movement
-    // elsewhere on the page.
-    const damage = typeof getDamageAt === 'function'
-      ? getDamageAt(window._cursorX, window._cursorY)
-      : 0;
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+
+    // Use neighbourhood average so text responds to cursor history
+    // within ~120px, not just the single cell at the paragraph center.
+    const damage = typeof getDamageNear === 'function'
+      ? getDamageNear(cx, cy, 120)
+      : (typeof getDamageAt === 'function' ? getDamageAt(cx, cy) : 0);
 
     if (damage - cache.lastDamage < DAMAGE_STEP) return;
 

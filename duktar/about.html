@@ -196,5 +196,17 @@
         >
       </footer>
     </div>
+    <script src="socket.io.min.js"></script>
+    <script src="distort-text.js"></script>
+    <script src="sketch2.js"></script>
+    <script src="cursor-displace.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        document.dispatchEvent(new Event("contentLoaded"));
+        setTimeout(() => {
+          if (window.wrapAllParagraphs) window.wrapAllParagraphs();
+        }, 100);
+      });
+    </script>
   </body>
 </html>

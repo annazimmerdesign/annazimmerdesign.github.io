@@ -17,7 +17,7 @@
 
   window.wrapAllParagraphs = function() {
     document.querySelectorAll(
-      '.entry p, .text-block p, .log-entry p, .entry-date, .log-date, .doc-caption, .node-label, .node-id, .photo-caption'
+      '.entry p, .text-block p, .log-entry p, .entry-date, .log-date, .doc-caption, .node-label, .node-id, .photo-caption, .about-para'
     ).forEach(wrapWords);
   };
 

@@ -120,7 +120,7 @@ const paragraphCache = new WeakMap();
 const DAMAGE_STEP = 0.025; // minimum damage change before recalculating
 
 function distortText() {
-  document.querySelectorAll('.entry p, .text-block p, .log-entry p').forEach(p => {
+  document.querySelectorAll('.entry p, .text-block p, .log-entry p, .about-para').forEach(p => {
 
     if (!paragraphCache.has(p)) {
       const original = p.textContent.trim();

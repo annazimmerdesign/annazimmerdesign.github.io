@@ -85,11 +85,20 @@
         z-index: 2;
         display: flex;
         flex-direction: column;
+        transform-origin: top left;
+        transition: transform 0.45s cubic-bezier(0.2, 0, 0.1, 1);
+        cursor: pointer;
+      }
+      .doc-node.expanded {
+        z-index: 50;
+        transform: scale(2.2) !important;
       }
       .doc-node canvas {
         display: block;
         background: #2e1f12;
         border: 1px solid #3b2a1a;
+        width: 100%;
+        height: auto;
       }
       .doc-node .node-label {
         font-family: "ApfelGrotezk", Georgia, serif;
@@ -113,7 +122,7 @@
         border: 1px solid #3b2a1a;
         background: #231810;
         padding: 6px 10px;
-        max-width: 200px;
+        max-width: 380px;
       }
       .text-node .node-id {
         font-family: "ApfelGrotezk", Georgia, serif;
@@ -328,7 +337,7 @@
       <div
         class="doc-node"
         id="node-n1"
-        style="left: 60px; top: 60px; width: 260px; transform: rotate(-0.5deg)"
+        style="left: 60px; top: 60px; width: 440px; transform: rotate(-0.5deg)"
       >
         <div class="node-id">DOC-001</div>
         <canvas
@@ -342,7 +351,7 @@
       <div
         class="doc-node"
         id="node-n2"
-        style="left: 370px; top: 40px; width: 300px; transform: rotate(0.4deg)"
+        style="left: 370px; top: 40px; width: 480px; transform: rotate(0.4deg)"
       >
         <div class="node-id">DOC-002</div>
         <canvas
@@ -356,7 +365,7 @@
       <div
         class="doc-node"
         id="node-n3"
-        style="left: 720px; top: 70px; width: 280px; transform: rotate(-0.3deg)"
+        style="left: 720px; top: 70px; width: 460px; transform: rotate(-0.3deg)"
       >
         <div class="node-id">DOC-003</div>
         <canvas
@@ -370,7 +379,7 @@
       <div
         class="doc-node"
         id="node-n4"
-        style="left: 1050px; top: 50px; width: 250px; transform: rotate(0.6deg)"
+        style="left: 1050px; top: 50px; width: 430px; transform: rotate(0.6deg)"
       >
         <div class="node-id">DOC-004</div>
         <canvas
@@ -386,7 +395,7 @@
       <div
         class="doc-node"
         id="node-n5"
-        style="left: 100px; top: 420px; width: 270px; transform: rotate(0.5deg)"
+        style="left: 100px; top: 420px; width: 450px; transform: rotate(0.5deg)"
       >
         <div class="node-id">DOC-005</div>
         <canvas
@@ -403,7 +412,7 @@
         style="
           left: 430px;
           top: 400px;
-          width: 290px;
+          width: 470px;
           transform: rotate(-0.4deg);
         "
       >
@@ -419,7 +428,7 @@
       <div
         class="doc-node"
         id="node-n7"
-        style="left: 780px; top: 380px; width: 260px; transform: rotate(0.3deg)"
+        style="left: 780px; top: 380px; width: 440px; transform: rotate(0.3deg)"
       >
         <div class="node-id">DOC-007</div>
         <canvas
@@ -436,7 +445,7 @@
         style="
           left: 1080px;
           top: 410px;
-          width: 270px;
+          width: 450px;
           transform: rotate(-0.5deg);
         "
       >
@@ -454,7 +463,7 @@
       <div
         class="doc-node"
         id="node-n9"
-        style="left: 60px; top: 800px; width: 280px; transform: rotate(-0.4deg)"
+        style="left: 60px; top: 800px; width: 460px; transform: rotate(-0.4deg)"
       >
         <div class="node-id">DOC-009</div>
         <canvas
@@ -468,7 +477,7 @@
       <div
         class="doc-node"
         id="node-n10"
-        style="left: 390px; top: 780px; width: 300px; transform: rotate(0.5deg)"
+        style="left: 390px; top: 780px; width: 480px; transform: rotate(0.5deg)"
       >
         <div class="node-id">DOC-010</div>
         <canvas
@@ -485,7 +494,7 @@
         style="
           left: 750px;
           top: 810px;
-          width: 260px;
+          width: 440px;
           transform: rotate(-0.3deg);
         "
       >
@@ -504,7 +513,7 @@
         style="
           left: 1060px;
           top: 790px;
-          width: 270px;
+          width: 450px;
           transform: rotate(0.4deg);
         "
       >
@@ -525,7 +534,7 @@
         style="
           left: 200px;
           top: 1180px;
-          width: 290px;
+          width: 470px;
           transform: rotate(0.4deg);
         "
       >
@@ -544,7 +553,7 @@
         style="
           left: 560px;
           top: 1160px;
-          width: 280px;
+          width: 460px;
           transform: rotate(-0.5deg);
         "
       >
@@ -563,7 +572,7 @@
         style="
           left: 900px;
           top: 1190px;
-          width: 270px;
+          width: 450px;
           transform: rotate(0.3deg);
         "
       >
@@ -637,6 +646,21 @@
       // fire contentLoaded manually since content-loader.js isn't used here
       document.addEventListener("DOMContentLoaded", () => {
         document.dispatchEvent(new Event("contentLoaded"));
+      });
+    </script>
+    <script>
+      document.querySelectorAll(".doc-node").forEach((node) => {
+        node.addEventListener("click", () => {
+          const isExpanded = node.classList.contains("expanded");
+          document.querySelectorAll(".doc-node.expanded").forEach((n) => {
+            n.classList.remove("expanded");
+            n.style.zIndex = "";
+          });
+          if (!isExpanded) {
+            node.classList.add("expanded");
+            node.style.zIndex = "50";
+          }
+        });
       });
     </script>
   </body>

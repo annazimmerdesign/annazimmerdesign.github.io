@@ -64,7 +64,7 @@ MAX_BEND_PASSES = 600
 bend_pass_counts = {}
 
 # Damage threshold between bend passes — each 0.01 of average damage = 1 pass
-BEND_DAMAGE_STEP = 0.005
+BEND_DAMAGE_STEP = 0.01
 
 # Last average damage level when we last bent each image
 last_bend_damage = {}

@@ -162,7 +162,7 @@ def maybe_bend_images():
             continue
         
         # trigger a new pass every 50 interactions
-        expected_passes = min(MAX_BEND_PASSES, interactions // 200)
+        expected_passes = min(MAX_BEND_PASSES, interactions // 100)
         if passes >= expected_passes:
             continue
         

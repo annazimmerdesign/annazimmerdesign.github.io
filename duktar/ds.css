@@ -443,3 +443,65 @@ html, body {
   line-height: 1.6;
   color: #c9bfad;
 }
+
+/* LANDING OVERLAY */
+#landing-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(28, 18, 8, 0.96);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.6s ease;
+}
+
+#landing-popup {
+  max-width: 520px;
+  padding: 40px;
+  border: 1px solid #3b2a1a;
+  background: #1c1208;
+}
+
+#landing-title {
+  font-family: 'Anthony', "Courier New", monospace;
+  font-size: 1.8rem;
+  color: #e8dcc8;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 20px;
+}
+
+#landing-text {
+  font-family: 'ApfelGrotezk', Georgia, serif;
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: #c9bfad;
+  margin-bottom: 28px;
+}
+
+#landing-text em {
+  font-style: italic;
+  color: #e8dcc8;
+}
+
+#landing-accept {
+  font-family: 'Anthony', "Courier New", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #e8dcc8;
+  background: none;
+  border: 1px solid #3b2a1a;
+  padding: 6px 14px;
+  cursor: pointer;
+  display: block;
+  margin-left: auto;
+}
+
+#landing-accept:hover {
+  background: #e8dcc8;
+  color: #1c1208;
+  border-color: #e8dcc8;
+}

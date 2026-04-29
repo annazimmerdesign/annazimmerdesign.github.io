@@ -75,47 +75,60 @@ last_bend_damage = {}
 def databend(data: bytearray, intensity: float, seed: int) -> bytearray:
     """
     Corrupt JPEG bytes between header and EOI marker.
-    Intensity 0.0–1.0 controls how many bytes get touched.
-    Seed ensures reproducibility at the same damage level.
+    Intensity 0.0-1.0 controls corruption amount.
+    Includes occasional dramatic color channel shifts.
     """
     result = bytearray(data)
-    
-    # Find a safe start point — skip JPEG header (SOI + APP markers)
-    # Scan for the start of image data (after first ~500 bytes)
     start = min(500, len(result) // 4)
-    end = len(result) - 2  # leave EOI marker (FF D9) intact
-    
+    end = len(result) - 2
+
     if end <= start:
         return result
-    
+
     rng = random.Random(seed)
-    num_corruptions = max(1, int((end - start) * intensity * 0.012))
-    
+    num_corruptions = max(1, int((end - start) * intensity * 0.015))
+
     for _ in range(num_corruptions):
         pos = rng.randint(start, end)
         action = rng.random()
-        
-        if action < 0.3:
-            # replace byte with random value
+
+        if action < 0.25:
+            # random byte
             result[pos] = rng.randint(0, 255)
-        elif action < 0.5:
-            # duplicate a nearby byte (smearing)
-            src = max(start, pos - rng.randint(1, 80))
+        elif action < 0.45:
+            # smear from nearby
+            src = max(start, pos - rng.randint(1, 100))
             result[pos] = result[src]
-        elif action < 0.65:
-            # zero out (creates black bands)
+        elif action < 0.58:
+            # zero out
             result[pos] = 0
-        elif action < 0.8:
-            # flip bits (creates color inversion artifacts)
+        elif action < 0.70:
+            # flip bits
             result[pos] ^= 0xFF
-        else:
-            # corrupt a whole run of bytes — creates horizontal banding
-            run = rng.randint(4, 40)
+        elif action < 0.83:
+            # horizontal band — variable length
+            run = rng.randint(8, 60)
             val = rng.randint(0, 255)
             for j in range(run):
                 if pos + j < end:
                     result[pos + j] = val
-    
+        elif action < 0.92:
+            # DRAMATIC: corrupt a large block with max/min values
+            # creates the magenta/cyan color channel explosions
+            run = rng.randint(50, 200)
+            val = rng.choice([0, 0, 0, 255, 255, 128, 192])
+            for j in range(run):
+                if pos + j < end:
+                    result[pos + j] = val
+        else:
+            # DRAMATIC: swap a chunk to a distant location
+            # creates the characteristic color smear/echo artifacts
+            src = rng.randint(start, max(start, end - 100))
+            run = rng.randint(20, 80)
+            for j in range(run):
+                if pos + j < end and src + j < end:
+                    result[pos + j] = result[src + j]
+
     return result
 
 
@@ -423,19 +436,6 @@ def on_request_full_map():
     })
 
 
-@app.route('/debug-images')
-def debug_images():
-    base = os.path.dirname(__file__)
-    results = {}
-    for name in ['image1.jpg', 'image2.jpg', 'image3.jpg', 'image4.jpg', 'image5.jpg']:
-        for path in [
-            os.path.join(base, 'images', name),
-            os.path.join(base, name),
-        ]:
-            results[path] = os.path.exists(path)
-    return jsonify(results)
-
-
 # ---- Boot ----
 
 if __name__ == '__main__':
@@ -444,3 +444,19 @@ if __name__ == '__main__':
     load_bent_images_from_supabase()
     print('Starting server...')
     socketio.run(app, host='0.0.0.0', port=5009, debug=False)
+
+
+
+@app.route('/debug-images')
+
+def debug_images():
+    import os
+    base = os.path.dirname(__file__)
+    results = {}
+    for name in ['image1.jpg', 'image2.jpg', 'image3.jpg']:
+        for path in [
+            os.path.join(base, 'images', name),
+            os.path.join(base, name),
+        ]:
+            results[path] = os.path.exists(path)
+    return jsonify(results)

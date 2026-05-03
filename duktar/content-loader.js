@@ -90,8 +90,9 @@ if (c.images && c.images.length) {
   }
 document.dispatchEvent(new Event('contentLoaded'));
   setTimeout(() => {
-    if (window.wrapAllParagraphs) window.wrapAllParagraphs();
-  }, 100);
+  if (window.wrapAllParagraphs) window.wrapAllParagraphs();
+  if (typeof registerImagesWithServer === 'function') registerImagesWithServer();
+}, 100);
 }
 
 document.addEventListener("click", (e) => {

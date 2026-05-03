@@ -58,7 +58,7 @@ _save_lock = threading.Lock()
 bent_images = {}
 
 # How many total databend passes before fully corrupted
-MAX_BEND_PASSES = 20
+MAX_BEND_PASSES = 600
 
 # Track how many passes each image has had
 bend_pass_counts = {}
@@ -162,7 +162,7 @@ def maybe_bend_images():
             continue
         
         # trigger a new pass every 50 interactions
-        expected_passes = min(MAX_BEND_PASSES, interactions // 500)
+        expected_passes = min(MAX_BEND_PASSES, interactions // 100)        
         if passes >= expected_passes:
             continue
         

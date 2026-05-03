@@ -86,7 +86,7 @@ def databend(data: bytearray, intensity: float, seed: int) -> bytearray:
         return result
 
     rng = random.Random(seed)
-    num_corruptions = max(1, int((end - start) * intensity * 0.015))
+    num_corruptions = max(1, int((end - start) * intensity * 0.005))
 
     for _ in range(num_corruptions):
         pos = rng.randint(start, end)
@@ -113,16 +113,16 @@ def databend(data: bytearray, intensity: float, seed: int) -> bytearray:
                 if pos + j < end:
                     result[pos + j] = val
         elif action < 0.92:
-            # DRAMATIC: corrupt a large block with max/min values
-            # creates the magenta/cyan color channel explosions
-            run = rng.randint(50, 200)
-            val = rng.choice([0, 0, 0, 255, 255, 128, 192])
-            for j in range(run):
-                if pos + j < end:
-                    result[pos + j] = val
+            # dramatic blocks only at higher intensity
+            if intensity > 0.35:
+                run = rng.randint(50, 200)
+                val = rng.choice([0, 0, 0, 255, 255, 128, 192])
+                for j in range(run):
+                    if pos + j < end:
+                        result[pos + j] = val
+            else:
+                result[pos] = rng.randint(0, 255)
         else:
-            # DRAMATIC: swap a chunk to a distant location
-            # creates the characteristic color smear/echo artifacts
             src = rng.randint(start, max(start, end - 100))
             run = rng.randint(20, 80)
             for j in range(run):
@@ -166,7 +166,7 @@ def maybe_bend_images():
         if passes >= expected_passes:
             continue
         
-        intensity = 0.5 + (passes / MAX_BEND_PASSES) * 0.3
+        intensity = 0.1 + (passes / MAX_BEND_PASSES) * 0.4
         seed = passes * 7919 + hash(filename) % 100000
         
         bent_images[filename] = databend(bent_images[filename], intensity, seed)

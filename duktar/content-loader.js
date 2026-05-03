@@ -13,7 +13,7 @@ async function loadContent() {
 
   // randomize main image
 if (c.images && c.images.length) {
-    const pick = c.images[0];
+    const pick = c.images[0]; // always same image — consistent state for all visitors
     const canvas = document.getElementById('main-canvas');
     const caption = document.getElementById('main-caption');
     if (caption) caption.textContent = pick.caption;
@@ -90,9 +90,9 @@ if (c.images && c.images.length) {
   }
 document.dispatchEvent(new Event('contentLoaded'));
   setTimeout(() => {
-  if (window.wrapAllParagraphs) window.wrapAllParagraphs();
-  if (typeof registerImagesWithServer === 'function') registerImagesWithServer();
-}, 100);
+    if (window.wrapAllParagraphs) window.wrapAllParagraphs();
+    if (typeof registerImagesWithServer === 'function') registerImagesWithServer();
+  }, 600);
 }
 
 document.addEventListener("click", (e) => {

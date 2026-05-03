@@ -82,22 +82,20 @@ function initSocket() {
   });
 
   socket.on('image_update', (data) => {
-  // find canvas with matching src and update it
-  document.querySelectorAll('.distort-canvas').forEach(canvas => {
-    const src = canvas.dataset.src || canvas.dataset.originalSrc;
-    // match by filename
-    if (src && src.split('/').pop() === data.filename.split('/').pop()) {
-      const img = new Image();
-      img.onload = () => {
-        canvas._originalSrc = data.data;
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      };
-      img.src = data.data;
-    }
+    document.querySelectorAll('.distort-canvas').forEach(canvas => {
+      const src = canvas.dataset.src || canvas.dataset.originalSrc;
+      if (src && src.split('/').pop() === data.filename.split('/').pop()) {
+        const img = new Image();
+        img.onload = () => {
+          canvas._originalSrc = data.data;
+          const ctx = canvas.getContext('2d');
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        };
+        img.src = data.data;
+      }
+    });
   });
-});
 }
 
 // ---- Supabase fallback ----
@@ -190,6 +188,26 @@ function initCanvases() {
     };
 
     img.src = src;
+
+    // hover — light permanent bend pass for all visitors
+let lastHoverEmit = 0;
+canvas.addEventListener('mouseenter', () => {
+  const now = Date.now();
+  if (now - lastHoverEmit < 3000) return; // max once per 3 seconds per image
+  lastHoverEmit = now;
+  const filename = (canvas.dataset.src || '').split('/').pop();
+  if (filename && socket && socketConnected) {
+    socket.emit('image_click', { filename, type: 'hover' });
+  }
+});
+
+// click — heavier permanent bend pass for all visitors  
+canvas.addEventListener('click', () => {
+  const filename = (canvas.dataset.src || '').split('/').pop();
+  if (filename && socket && socketConnected) {
+    socket.emit('image_click', { filename, type: 'click' });
+  }
+});
   });
 }
 

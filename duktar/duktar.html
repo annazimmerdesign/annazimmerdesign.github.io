@@ -10,9 +10,9 @@
       <div id="landing-popup">
         <div id="landing-title">Welcome.</div>
         <div id="landing-text">
-          Welcome. You are about to enter <em>Dukhtar, Dispossessed</em>, a
-          personal digital archive. Your presence here will directly affect this
-          archive's appearance, structure, and content---both for you and for
+          You are about to enter <em>Dukhtar, Dispossessed</em>, a personal
+          digital archive. Your presence here will directly affect this
+          archive's appearance, structure, and content — both for you and for
           others accessing it, simultaneously or in the future, temporarily and
           permanently.
         </div>
@@ -23,7 +23,15 @@
     </div>
 
     <script>
+      // only show landing on first visit — persists across reloads
+      (function () {
+        if (localStorage.getItem("dukhtar_visited")) {
+          document.getElementById("landing-overlay").style.display = "none";
+        }
+      })();
+
       function dismissLanding() {
+        localStorage.setItem("dukhtar_visited", "1");
         const overlay = document.getElementById("landing-overlay");
         overlay.style.opacity = "0";
         setTimeout(() => (overlay.style.display = "none"), 600);
@@ -34,21 +42,19 @@
         <div id="site-title" onmouseover="cycleDukhtar()">
           Dukhtar, Dispossessed
         </div>
-
         <script>
-          const titles = [
+          const _titles = [
             "Daughter, Dispossessed",
             "Дочь, Dispossessed",
             "Духтар, Dispossessed",
-            "دختر، Dispossessed",
+            "دختر, Dispossessed",
             "Dukhtar, Dispossessed",
           ];
-          let titleIdx = 0;
-
+          let _titleIdx = 0;
           function cycleDukhtar() {
             document.getElementById("site-title").textContent =
-              titles[titleIdx];
-            titleIdx = (titleIdx + 1) % titles.length;
+              _titles[_titleIdx];
+            _titleIdx = (_titleIdx + 1) % _titles.length;
           }
         </script>
         <div id="site-subtitle">Speculative Counter-Archive</div>

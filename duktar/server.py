@@ -6,6 +6,7 @@ Flask-SocketIO live damage layer + server-side databend image corruption.
 from flask import Flask, send_file, jsonify
 from flask_socketio import SocketIO, emit
 from flask_cors import CORS
+from PIL import Image, ImageChops
 import json
 import math
 import random
@@ -14,7 +15,6 @@ import io
 import os
 import requests
 import threading
-from PIL import Image, ImageFilter, ImageEnhance
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dukhtar-secret-change-in-prod'
@@ -28,7 +28,6 @@ socketio = SocketIO(
     engineio_logger=False
 )
 
-# ---- Supabase config ----
 SUPABASE_URL = 'https://dkszxyudruaqtlhininm.supabase.co'
 SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrc3p4eXVkcnVhcXRsaGluaW5tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzODcwNzEsImV4cCI6MjA5MDk2MzA3MX0.mjtPxo0yvpPedV0vTlJ4qIZ5vOYHTnkGlfSR27yx4-U'
 HEADERS = {
@@ -38,7 +37,6 @@ HEADERS = {
     'Prefer': 'return=minimal'
 }
 
-# ---- Damage map ----
 GRID_W = 192
 GRID_H = 192
 BRUSH_RADIUS = 4
@@ -52,90 +50,198 @@ connected_clients = 0
 _save_timer = None
 _save_lock = threading.Lock()
 
-# ---- Databend image state ----
-# Stores the current bent version of each image as raw bytes.
-# Key: image filename (e.g. "image1.jpg")
-# Value: bytearray of the current corrupted JPEG
 bent_images = {}
-
-# How many total databend passes before fully corrupted
-MAX_BEND_PASSES = 600
-
-# Track how many passes each image has had
+MAX_BEND_PASSES = 20
 bend_pass_counts = {}
-
-# Damage threshold between bend passes — each 0.01 of average damage = 1 pass
-BEND_DAMAGE_STEP = 0.01
-
-# Last average damage level when we last bent each image
 last_bend_damage = {}
 
+# staggered offsets — imperial images degrade first
+IMAGE_OFFSETS = {
+    'image1.jpg': 0,
+    'image2.jpg': 200,
+    'image3.jpg': 400,
+    'image4.jpg': 100,
+    'image5.jpg': 300,
+}
 
-# ---- Databend core ----
+
+# ---- Databend ----
+
+def find_sos_offset(data: bytearray) -> int:
+    i = 2
+    while i < len(data) - 1:
+        if data[i] != 0xFF:
+            i += 1
+            continue
+        marker = data[i + 1]
+        if marker == 0xDA:
+            if i + 3 < len(data):
+                length = (data[i + 2] << 8) + data[i + 3]
+                return i + 2 + length
+        elif marker in range(0xE0, 0xF0) or marker in (0xDB, 0xC0, 0xC2, 0xC4, 0xC9, 0xCB):
+            if i + 3 < len(data):
+                length = (data[i + 2] << 8) + data[i + 3]
+                i += 2 + length
+                continue
+        i += 1
+    return max(500, len(data) // 5)
+
 
 def databend(data: bytearray, intensity: float, seed: int) -> bytearray:
     """
-    Corrupt JPEG bytes between header and EOI marker.
-    Intensity 0.0-1.0 controls corruption amount.
-    Includes occasional dramatic color channel shifts.
+    Two-phase permanent degradation triggered by user clicks.
+    Phase 1: Pillow re-encoding (always) — authentic JPEG artifacts, no grey void.
+    Phase 2 (intensity > 0.5): byte corruption on top for dramatic color effects.
     """
-    result = bytearray(data)
-    start = min(500, len(result) // 4)
-    end = len(result) - 2
-
-    if end <= start:
-        return result
-
     rng = random.Random(seed)
-    num_corruptions = max(1, int((end - start) * intensity * 0.015))
+    try:
+        img = Image.open(io.BytesIO(bytes(data)))
+        img = img.convert('RGB')
+        w, h = img.size
 
-    for _ in range(num_corruptions):
-        pos = rng.randint(start, end)
-        action = rng.random()
+        # phase 1: re-encoding
+        quality = max(10, int(90 - intensity * 45))
+        encode_passes = max(1, int(intensity * 3) + 1)
+        for _ in range(encode_passes):
+            buf = io.BytesIO()
+            img.save(buf, format='JPEG', quality=quality)
+            buf.seek(0)
+            img = Image.open(buf)
+            img = img.convert('RGB')
 
-        if action < 0.25:
-            # random byte
-            result[pos] = rng.randint(0, 255)
-        elif action < 0.45:
-            # smear from nearby
-            src = max(start, pos - rng.randint(1, 100))
-            result[pos] = result[src]
-        elif action < 0.58:
-            # zero out
-            result[pos] = 0
-        elif action < 0.70:
-            # flip bits
-            result[pos] ^= 0xFF
-        elif action < 0.83:
-            # horizontal band — variable length
-            run = rng.randint(8, 60)
-            val = rng.randint(0, 255)
-            for j in range(run):
-                if pos + j < end:
-                    result[pos + j] = val
-        elif action < 0.92:
-            # DRAMATIC: corrupt a large block with max/min values
-            # creates the magenta/cyan color channel explosions
-            run = rng.randint(50, 200)
-            val = rng.choice([0, 0, 0, 255, 255, 128, 192])
-            for j in range(run):
-                if pos + j < end:
-                    result[pos + j] = val
+        # channel shift
+        shift = int(intensity * 14)
+        if shift > 0:
+            r, g, b = img.split()
+            r = ImageChops.offset(r, -shift, 0)
+            b = ImageChops.offset(b, shift, 0)
+            img = Image.merge('RGB', (r, g, b))
+
+        # scanlines at mid-high intensity
+        if intensity > 0.45:
+            pixels = img.load()
+            for _ in range(max(1, int(intensity * 6))):
+                y = rng.randint(0, h - 1)
+                color = (rng.choice([0,128,255]), rng.choice([0,128,255]), rng.choice([0,128,255]))
+                for x in range(rng.randint(0, w//2), rng.randint(w//2, w)):
+                    try: pixels[x, y] = color
+                    except: pass
+
+        out = io.BytesIO()
+        img.save(out, format='JPEG', quality=max(15, quality - 5))
+        result = bytearray(out.getvalue())
+
+        # phase 2: byte corruption at higher intensity
+        if intensity > 0.5:
+            start = find_sos_offset(result)
+            end = len(result) - 2
+            data_len = end - start
+            if data_len > 200:
+                phase2 = (intensity - 0.5) * 2
+                num_corruptions = max(2, int(data_len * phase2 * 0.0008))
+                segment_size = data_len // num_corruptions
+                for i in range(num_corruptions):
+                    seg_start = start + i * segment_size
+                    seg_end = min(end - 1, seg_start + segment_size)
+                    if seg_start >= seg_end: continue
+                    pos = rng.randint(seg_start, seg_end)
+                    action = rng.random()
+                    if action < 0.35:
+                        result[pos] = rng.randint(0, 255)
+                    elif action < 0.55:
+                        result[pos] = result[max(start, pos - rng.randint(1, 60))]
+                    elif action < 0.72:
+                        run = rng.randint(4, 24)
+                        val = rng.choice([0, 0, 128, 255, 255])
+                        for j in range(run):
+                            if pos + j < end: result[pos + j] = val
+                    else:
+                        run = rng.randint(16, 80)
+                        val = rng.choice([0, 0, 255, 255, 192, 64])
+                        for j in range(run):
+                            if pos + j < end: result[pos + j] = val
+
+        return result
+    except Exception as e:
+        print(f'Databend error: {e}')
+        return data
+
+
+def apply_bend_pass(filename: str):
+    """Apply one databend pass to an image and broadcast to all clients."""
+    if filename not in bent_images:
+        return
+    passes = bend_pass_counts.get(filename, 0)
+    if passes >= MAX_BEND_PASSES:
+        return
+
+    intensity = 0.02 + (passes / MAX_BEND_PASSES) * 0.98
+    seed = passes * 7919 + hash(filename) % 100000
+
+    bent_images[filename] = databend(bent_images[filename], intensity, seed)
+    bend_pass_counts[filename] = passes + 1
+
+    print(f'Bent {filename}: pass {passes + 1}, intensity {intensity:.2f}')
+
+    bent_b64 = base64.b64encode(bytes(bent_images[filename])).decode('utf-8')
+    socketio.emit('image_update', {
+        'filename': filename,
+        'data': f'data:image/jpeg;base64,{bent_b64}',
+        'passes': passes + 1,
+    })
+    save_bent_image_to_supabase(filename, bent_b64, passes + 1)
+
+
+def maybe_bend_images():
+    """Background accumulation — slow degradation from collective interactions."""
+    for filename in list(bent_images.keys()):
+        passes = bend_pass_counts.get(filename, 0)
+        if passes >= MAX_BEND_PASSES:
+            continue
+        offset = IMAGE_OFFSETS.get(filename, 500)
+        expected_passes = min(MAX_BEND_PASSES, max(0, (interactions - offset) // 1000))
+        if passes >= expected_passes:
+            continue
+        apply_bend_pass(filename)
+
+
+# ---- Supabase ----
+
+def save_bent_image_to_supabase(filename: str, b64: str, passes: int):
+    try:
+        res = requests.get(
+            f'{SUPABASE_URL}/rest/v1/image_state?filename=eq.{filename}&select=id',
+            headers=HEADERS, timeout=8
+        )
+        existing = res.json()
+        payload = {'filename': filename, 'image_data': b64, 'bend_passes': passes}
+        if existing:
+            requests.patch(f'{SUPABASE_URL}/rest/v1/image_state?filename=eq.{filename}',
+                headers=HEADERS, json=payload, timeout=8)
         else:
-            # DRAMATIC: swap a chunk to a distant location
-            # creates the characteristic color smear/echo artifacts
-            src = rng.randint(start, max(start, end - 100))
-            run = rng.randint(20, 80)
-            for j in range(run):
-                if pos + j < end and src + j < end:
-                    result[pos + j] = result[src + j]
-
-    return result
+            requests.post(f'{SUPABASE_URL}/rest/v1/image_state',
+                headers=HEADERS, json=payload, timeout=8)
+    except Exception as e:
+        print(f'Failed to save bent image {filename}: {e}')
 
 
-def get_image_bytes(filename: str) -> bytearray | None:
-    """Load original image from disk."""
-    # Try relative to server.py location
+def load_bent_images_from_supabase():
+    try:
+        res = requests.get(
+            f'{SUPABASE_URL}/rest/v1/image_state?select=filename,image_data,bend_passes',
+            headers=HEADERS, timeout=8
+        )
+        for row in res.json():
+            fn, b64, passes = row.get('filename'), row.get('image_data'), row.get('bend_passes', 0)
+            if fn and b64:
+                bent_images[fn] = bytearray(base64.b64decode(b64))
+                bend_pass_counts[fn] = passes
+                print(f'Loaded bent image {fn}: {passes} passes')
+    except Exception as e:
+        print(f'Failed to load bent images: {e}')
+
+
+def get_image_bytes(filename: str):
     paths = [
         os.path.join(os.path.dirname(__file__), 'images', filename),
         os.path.join(os.path.dirname(__file__), filename),
@@ -149,98 +255,6 @@ def get_image_bytes(filename: str) -> bytearray | None:
     return None
 
 
-def get_average_damage() -> float:
-    """Get mean damage across the whole map."""
-    if not damage_map:
-        return 0.0
-    return sum(damage_map) / len(damage_map)
-
-
-def maybe_bend_images():
-    # each image gets a unique offset so they degrade at staggered intervals
-    offsets = {
-        'image1.jpg': 0,
-        'image2.jpg': 100,
-        'image3.jpg': 200,
-        'image4.jpg': 50,
-        'image5.jpg': 150,
-    }
-    
-    for filename in list(bent_images.keys()):
-        passes = bend_pass_counts.get(filename, 0)
-        if passes >= MAX_BEND_PASSES:
-            continue
-        
-        offset = offsets.get(filename, 0)
-        expected_passes = min(MAX_BEND_PASSES, max(0, (interactions - offset) // 500))
-        if passes >= expected_passes:
-            continue
-        
-        intensity = 0.05 + (passes / MAX_BEND_PASSES) * 0.95
-        seed = passes * 7919 + hash(filename) % 100000
-        
-        bent_images[filename] = databend(bent_images[filename], intensity, seed)
-        bend_pass_counts[filename] = passes + 1
-        
-        print(f'Bent {filename}: pass {passes + 1}, intensity {intensity:.2f}')
-        
-        bent_b64 = base64.b64encode(bytes(bent_images[filename])).decode('utf-8')
-        socketio.emit('image_update', {
-            'filename': filename,
-            'data': f'data:image/jpeg;base64,{bent_b64}',
-            'passes': passes + 1,
-        })
-        save_bent_image_to_supabase(filename, bent_b64, passes + 1)
-
-def save_bent_image_to_supabase(filename: str, b64: str, passes: int):
-    """Save bent image state to Supabase image_state table."""
-    try:
-        # check if row exists
-        res = requests.get(
-            f'{SUPABASE_URL}/rest/v1/image_state?filename=eq.{filename}&select=id',
-            headers=HEADERS, timeout=8
-        )
-        existing = res.json()
-        
-        payload = {
-            'filename': filename,
-            'image_data': b64,
-            'bend_passes': passes,
-        }
-        
-        if existing:
-            requests.patch(
-                f'{SUPABASE_URL}/rest/v1/image_state?filename=eq.{filename}',
-                headers=HEADERS, json=payload, timeout=8
-            )
-        else:
-            requests.post(
-                f'{SUPABASE_URL}/rest/v1/image_state',
-                headers=HEADERS, json=payload, timeout=8
-            )
-    except Exception as e:
-        print(f'Failed to save bent image {filename}: {e}')
-
-
-def load_bent_images_from_supabase():
-    """Load previously bent image states from Supabase on boot."""
-    try:
-        res = requests.get(
-            f'{SUPABASE_URL}/rest/v1/image_state?select=filename,image_data,bend_passes',
-            headers=HEADERS, timeout=8
-        )
-        rows = res.json()
-        for row in rows:
-            fn = row.get('filename')
-            b64 = row.get('image_data')
-            passes = row.get('bend_passes', 0)
-            if fn and b64:
-                bent_images[fn] = bytearray(base64.b64decode(b64))
-                bend_pass_counts[fn] = passes
-                print(f'Loaded bent image {fn}: {passes} passes')
-    except Exception as e:
-        print(f'Failed to load bent images: {e}')
-
 def register_image(filename: str):
     if filename in bent_images:
         return
@@ -248,9 +262,13 @@ def register_image(filename: str):
     if original:
         bent_images[filename] = original
         bend_pass_counts[filename] = 0
-        print(f'Registered image for databending: {filename}')
+        print(f'Registered: {filename}')
     else:
-        print(f'Could not load image for databending: {filename}')
+        print(f'Could not load: {filename}')
+
+
+def get_average_damage():
+    return sum(damage_map) / len(damage_map) if damage_map else 0.0
 
 
 # ---- HTTP routes ----
@@ -266,35 +284,17 @@ def health():
     })
 
 
-@app.route('/image/<filename>')
-def serve_image(filename):
-    """Serve the current bent version of an image."""
-    # sanitize filename
-    filename = os.path.basename(filename)
-    
-    if filename not in bent_images:
-        register_image(filename)
-    
-    if filename in bent_images:
-        img_bytes = bytes(bent_images[filename])
-        return send_file(
-            io.BytesIO(img_bytes),
-            mimetype='image/jpeg',
-            as_attachment=False,
-        )
-    
-    return jsonify({'error': 'image not found'}), 404
+@app.route('/debug-images')
+def debug_images():
+    base = os.path.dirname(__file__)
+    results = {}
+    for name in ['image1.jpg','image2.jpg','image3.jpg','image4.jpg','image5.jpg']:
+        for path in [os.path.join(base,'images',name), os.path.join(base,name)]:
+            results[path] = os.path.exists(path)
+    return jsonify(results)
 
 
-@app.route('/register/<filename>')
-def register_endpoint(filename):
-    """Register an image for databending."""
-    filename = os.path.basename(filename)
-    register_image(filename)
-    return jsonify({'registered': filename, 'passes': bend_pass_counts.get(filename, 0)})
-
-
-# ---- Supabase I/O ----
+# ---- Supabase damage map ----
 
 def load_from_supabase():
     global damage_map, interactions
@@ -312,7 +312,7 @@ def load_from_supabase():
                 if len(loaded) == GRID_W * GRID_H:
                     damage_map = loaded
                 else:
-                    print(f'Damage map size mismatch — starting fresh')
+                    print('Damage map size mismatch — starting fresh')
         print(f'Loaded from Supabase: {interactions} interactions')
     except Exception as e:
         print(f'Supabase load failed: {e}')
@@ -339,19 +339,15 @@ def schedule_save():
         _save_timer.start()
 
 
-# ---- Damage logic ----
-
 def apply_damage(gx, gy):
     for dy in range(-BRUSH_RADIUS, BRUSH_RADIUS + 1):
         for dx in range(-BRUSH_RADIUS, BRUSH_RADIUS + 1):
-            dist = math.sqrt(dx * dx + dy * dy)
-            if dist > BRUSH_RADIUS:
-                continue
+            dist = math.sqrt(dx*dx + dy*dy)
+            if dist > BRUSH_RADIUS: continue
             nx, ny = gx + dx, gy + dy
-            if nx < 0 or nx >= GRID_W or ny < 0 or ny >= GRID_H:
-                continue
+            if nx < 0 or nx >= GRID_W or ny < 0 or ny >= GRID_H: continue
             idx = ny * GRID_W + nx
-            damage_map[idx] = min(MAX_DAMAGE, damage_map[idx] + DAMAGE_PER_PASS * (1 - dist / BRUSH_RADIUS))
+            damage_map[idx] = min(MAX_DAMAGE, damage_map[idx] + DAMAGE_PER_PASS * (1 - dist/BRUSH_RADIUS))
 
 
 # ---- SocketIO events ----
@@ -365,7 +361,6 @@ def on_connect():
         'interactions': interactions,
         'connected': connected_clients,
     })
-    # send current bent images to new client
     for filename, data in bent_images.items():
         b64 = base64.b64encode(bytes(data)).decode('utf-8')
         emit('image_update', {
@@ -373,10 +368,8 @@ def on_connect():
             'data': f'data:image/jpeg;base64,{b64}',
             'passes': bend_pass_counts.get(filename, 0),
         })
-    print(f'Current bent images: {list(bent_images.keys())}')
     socketio.emit('presence', {'connected': connected_clients})
     print(f'Client connected. Total: {connected_clients}')
-
 
 
 @socketio.on('disconnect')
@@ -392,14 +385,13 @@ def on_cursor_move(data):
     global interactions
     gx = int(data.get('gx', 0))
     gy = int(data.get('gy', 0))
-
     apply_damage(gx, gy)
     interactions += 1
 
     affected = []
-    for dy in range(-BRUSH_RADIUS - 1, BRUSH_RADIUS + 2):
-        for dx in range(-BRUSH_RADIUS - 1, BRUSH_RADIUS + 2):
-            nx, ny = gx + dx, gy + dy
+    for dy in range(-BRUSH_RADIUS-1, BRUSH_RADIUS+2):
+        for dx in range(-BRUSH_RADIUS-1, BRUSH_RADIUS+2):
+            nx, ny = gx+dx, gy+dy
             if 0 <= nx < GRID_W and 0 <= ny < GRID_H:
                 idx = ny * GRID_W + nx
                 affected.append([idx, damage_map[idx]])
@@ -407,8 +399,7 @@ def on_cursor_move(data):
     emit('damage_update', {
         'affected': affected,
         'interactions': interactions,
-        'gx': gx,
-        'gy': gy,
+        'gx': gx, 'gy': gy,
     }, broadcast=True)
 
     schedule_save()
@@ -427,27 +418,43 @@ def on_cursor_position(data):
 
 @socketio.on('register_image')
 def on_register_image(data):
-    """Client tells server which images to track for databending."""
     filename = os.path.basename(data.get('filename', ''))
     if filename:
         register_image(filename)
 
 
-@socketio.on('request_bent_image')
-def on_request_bent_image(data):
-    """Client requests current bent state of a specific image."""
+@socketio.on('image_click')
+def on_image_click(data):
     filename = os.path.basename(data.get('filename', ''))
+    interaction_type = data.get('type', 'click')
     if not filename:
         return
     if filename not in bent_images:
         register_image(filename)
-    if filename in bent_images:
-        b64 = base64.b64encode(bytes(bent_images[filename])).decode('utf-8')
-        emit('image_update', {
-            'filename': filename,
-            'data': f'data:image/jpeg;base64,{b64}',
-            'passes': bend_pass_counts.get(filename, 0),
-        })
+
+    passes = bend_pass_counts.get(filename, 0)
+    if passes >= MAX_BEND_PASSES:
+        return
+
+    if interaction_type == 'hover':
+        # lighter pass — lower intensity
+        intensity = 0.01 + (passes / MAX_BEND_PASSES) * 0.5
+        seed = passes * 7919 + hash(filename) % 100000
+        bent_images[filename] = databend(bent_images[filename], intensity, seed)
+        bend_pass_counts[filename] = passes + 1
+    else:
+        # full pass
+        apply_bend_pass(filename)
+        return
+
+    bent_b64 = base64.b64encode(bytes(bent_images[filename])).decode('utf-8')
+    socketio.emit('image_update', {
+        'filename': filename,
+        'data': f'data:image/jpeg;base64,{bent_b64}',
+        'passes': bend_pass_counts[filename],
+    })
+    save_bent_image_to_supabase(filename, bent_b64, bend_pass_counts[filename])
+    print(f'Image {interaction_type}: {filename}, pass {bend_pass_counts[filename]}')
 
 
 @socketio.on('request_full_map')
@@ -467,19 +474,3 @@ if __name__ == '__main__':
     load_bent_images_from_supabase()
     print('Starting server...')
     socketio.run(app, host='0.0.0.0', port=5009, debug=False)
-
-
-
-@app.route('/debug-images')
-
-def debug_images():
-    import os
-    base = os.path.dirname(__file__)
-    results = {}
-    for name in ['image1.jpg', 'image2.jpg', 'image3.jpg']:
-        for path in [
-            os.path.join(base, 'images', name),
-            os.path.join(base, name),
-        ]:
-            results[path] = os.path.exists(path)
-    return jsonify(results)

@@ -13,7 +13,7 @@ async function loadContent() {
 
   // randomize main image
 if (c.images && c.images.length) {
-    const pick = c.images[Math.floor(Math.random() * c.images.length)];
+    const pick = c.images[0];
     const canvas = document.getElementById('main-canvas');
     const caption = document.getElementById('main-caption');
     if (caption) caption.textContent = pick.caption;

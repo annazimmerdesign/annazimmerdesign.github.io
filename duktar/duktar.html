@@ -31,7 +31,26 @@
     </script>
     <div id="page-wrapper">
       <header id="site-header">
-        <div id="site-title">Dukhtar, Dispossessed</div>
+        <div id="site-title" onmouseover="cycleDukhtar()">
+          Dukhtar, Dispossessed
+        </div>
+
+        <script>
+          const titles = [
+            "Daughter, Dispossessed",
+            "Дочь, Dispossessed",
+            "Духтар, Dispossessed",
+            "دختر، Dispossessed",
+            "Dukhtar, Dispossessed",
+          ];
+          let titleIdx = 0;
+
+          function cycleDukhtar() {
+            document.getElementById("site-title").textContent =
+              titles[titleIdx];
+            titleIdx = (titleIdx + 1) % titles.length;
+          }
+        </script>
         <div id="site-subtitle">Speculative Counter-Archive</div>
         <div id="header-meta">
           <span class="header-label"

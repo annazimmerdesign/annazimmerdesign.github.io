@@ -166,7 +166,7 @@ def maybe_bend_images():
         if passes >= expected_passes:
             continue
         
-        intensity = 0.5 + (passes / MAX_BEND_PASSES) * 0.5
+        intensity = 0.5 + (passes / MAX_BEND_PASSES) * 0.3
         seed = passes * 7919 + hash(filename) % 100000
         
         bent_images[filename] = databend(bent_images[filename], intensity, seed)

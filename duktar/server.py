@@ -162,7 +162,7 @@ def maybe_bend_images():
             continue
         
         # trigger a new pass every 50 interactions
-        expected_passes = min(MAX_BEND_PASSES, interactions // 100)
+        expected_passes = min(MAX_BEND_PASSES, interactions // 2000)        
         if passes >= expected_passes:
             continue
         
@@ -237,16 +237,9 @@ def register_image(filename: str):
         return
     original = get_image_bytes(filename)
     if original:
-        # apply accumulated bending up to current state in one shot
-        current_expected = min(MAX_BEND_PASSES, interactions // 200)
-        data = bytearray(original)
-        for p in range(current_expected):
-            intensity = 0.3 + (p / MAX_BEND_PASSES) * 0.7
-            seed = p * 7919 + hash(filename) % 100000
-            data = databend(data, intensity, seed)
-        bent_images[filename] = data
-        bend_pass_counts[filename] = current_expected
-        print(f'Registered {filename}: applied {current_expected} passes to match current state')
+        bent_images[filename] = original
+        bend_pass_counts[filename] = 0
+        print(f'Registered image for databending: {filename}')
     else:
         print(f'Could not load image for databending: {filename}')
 

@@ -14,6 +14,7 @@ import io
 import os
 import requests
 import threading
+from PIL import Image, ImageFilter, ImageEnhance
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dukhtar-secret-change-in-prod'
@@ -156,23 +157,32 @@ def get_average_damage() -> float:
 
 
 def maybe_bend_images():
+    # each image gets a unique offset so they degrade at staggered intervals
+    offsets = {
+        'image1.jpg': 0,
+        'image2.jpg': 100,
+        'image3.jpg': 200,
+        'image4.jpg': 50,
+        'image5.jpg': 150,
+    }
+    
     for filename in list(bent_images.keys()):
         passes = bend_pass_counts.get(filename, 0)
         if passes >= MAX_BEND_PASSES:
             continue
         
-        # trigger a new pass every 50 interactions
-        expected_passes = min(MAX_BEND_PASSES, interactions // 100)        
+        offset = offsets.get(filename, 0)
+        expected_passes = min(MAX_BEND_PASSES, max(0, (interactions - offset) // 500))
         if passes >= expected_passes:
             continue
         
-        intensity = 0.05 + (passes / MAX_BEND_PASSES) * 0.6
+        intensity = 0.05 + (passes / MAX_BEND_PASSES) * 0.95
         seed = passes * 7919 + hash(filename) % 100000
         
         bent_images[filename] = databend(bent_images[filename], intensity, seed)
         bend_pass_counts[filename] = passes + 1
         
-        print(f'Bent {filename}: pass {passes + 1}')
+        print(f'Bent {filename}: pass {passes + 1}, intensity {intensity:.2f}')
         
         bent_b64 = base64.b64encode(bytes(bent_images[filename])).decode('utf-8')
         socketio.emit('image_update', {
@@ -181,7 +191,6 @@ def maybe_bend_images():
             'passes': passes + 1,
         })
         save_bent_image_to_supabase(filename, bent_b64, passes + 1)
-
 
 def save_bent_image_to_supabase(filename: str, b64: str, passes: int):
     """Save bent image state to Supabase image_state table."""

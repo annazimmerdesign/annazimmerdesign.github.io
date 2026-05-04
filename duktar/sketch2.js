@@ -43,7 +43,7 @@ function initSocket() {
 
   socket.on('disconnect', () => {
     socketConnected = false;
-    console.log('Socket disconnected — local mode');
+    console.log('Socket disconnected --- local mode');
   });
 
   socket.on('init', (data) => {
@@ -157,7 +157,7 @@ async function loadFromSupabase() {
       updateDisplay();
     }
   } catch (e) {
-    console.warn('Supabase fallback failed — starting fresh:', e);
+    console.warn('Supabase fallback failed --- starting fresh:', e);
     initCanvases();
     updateDisplay();
   }

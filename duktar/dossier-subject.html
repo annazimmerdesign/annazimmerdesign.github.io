@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>duktar — subject ???</title>
+    <link rel="stylesheet" href="ds.css" />
+    <style>
+      @font-face {
+        font-family: "Anthony";
+        src: url("web-fonts/Anthony.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "ApfelGrotezk";
+        src: url("web-fonts/ApfelGrotezk-Regular.woff2") format("woff2");
+      }
+
+      body {
+        background: #1c1208;
+        margin: 0;
+        padding: 0;
+      }
+
+      #dossier-header {
+        background: #1c1208;
+        border-bottom: 2px solid #3b2a1a;
+        padding: 14px 14px 10px;
+        position: relative;
+        z-index: 10;
+      }
+      #dossier-title {
+        font-family: "Anthony", "Courier New", monospace;
+        font-size: 2rem;
+        letter-spacing: 0.08em;
+        color: #e8dcc8;
+        text-transform: uppercase;
+        line-height: 1.1;
+        margin-bottom: 3px;
+      }
+      #dossier-subtitle {
+        font-family: "ApfelGrotezk", Georgia, serif;
+        font-size: 0.72rem;
+        letter-spacing: 0.2em;
+        color: #a09080;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+      }
+      #dossier-meta {
+        border-top: 1px solid #3b2a1a;
+        padding-top: 6px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      #dossier-meta span,
+      #dossier-meta a {
+        font-family: "ApfelGrotezk", Georgia, serif;
+        font-size: 0.68rem;
+        letter-spacing: 0.1em;
+        color: #a09080;
+        text-transform: uppercase;
+        text-decoration: none;
+      }
+      #dossier-meta a:hover {
+        text-decoration: underline;
+      }
+
+      #subject-layout {
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        min-height: calc(100vh - 120px);
+      }
+
+      /* left sidebar */
+      #subject-sidebar {
+        border-right: 1px solid #3b2a1a;
+        background: #231810;
+      }
+      .sidebar-section {
+        border-bottom: 1px solid #3b2a1a;
+      }
+      .sidebar-header {
+        background: #e8dcc8;
+        color: #1c1208;
+        font-family: "Anthony", "Courier New", monospace;
+        font-size: 0.75rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        padding: 4px 8px;
+      }
+      .sidebar-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .sidebar-list li {
+        border-bottom: 1px solid #2e1f12;
+      }
+      .sidebar-list li a {
+        font-family: "Anthony", "Courier New", monospace;
+        font-size: 0.75rem;
+        color: #c9bfad;
+        text-decoration: none;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        display: block;
+        padding: 5px 8px;
+      }
+      .sidebar-list li a:hover {
+        background: #e8dcc8;
+        color: #1c1208;
+      }
+      .sidebar-list li a.active {
+        color: #e8dcc8;
+        background: #3b2a1a;
+      }
+
+      .meta-block {
+        border-bottom: 1px solid #3b2a1a;
+      }
+      .meta-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 2px 8px;
+        border-bottom: 1px dotted #2e1f12;
+      }
+      .meta-key {
+        font-family: "Courier New", monospace;
+        font-size: 0.58rem;
+        color: #a09080;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .meta-val {
+        font-family: "Anthony", "Courier New", monospace;
+        font-size: 0.58rem;
+        color: #c9bfad;
+      }
+
+      /* main content */
+      #subject-main {
+        padding: 32px 40px 80px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+      }
+      .section-header {
+        background: #e8dcc8;
+        color: #1c1208;
+        font-family: "Anthony", "Courier New", monospace;
+        font-size: 1rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        padding: 4px 8px;
+        margin-bottom: 12px;
+        width: 100%;
+      }
+      #citizen-canvas-wrap {
+        position: relative;
+        cursor: grab;
+        display: inline-block;
+      }
+      #citizen-canvas-wrap:active {
+        cursor: grabbing;
+      }
+      #citizen-canvas {
+        display: block;
+        border: 1px solid #3b2a1a;
+        background: #2e1f12;
+        max-width: 680px;
+        width: 100%;
+      }
+      .doc-caption {
+        font-family: "Anthony", "Courier New", monospace;
+        font-size: 0.62rem;
+        color: #a09080;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-top: 6px;
+      }
+      .doc-note {
+        font-family: "ApfelGrotezk", Georgia, serif;
+        font-size: 0.82rem;
+        line-height: 1.7;
+        color: #c9bfad;
+        max-width: 600px;
+        border-left: 2px solid #3b2a1a;
+        padding-left: 12px;
+      }
+
+      #dossier-footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #e8dcc8;
+        border-top: 2px solid #c9bfad;
+        padding: 5px 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 100;
+      }
+      #dossier-footer span {
+        font-family: "ApfelGrotezk", Georgia, serif;
+        font-size: 0.68rem;
+        letter-spacing: 0.08em;
+        color: #1c1208;
+        text-transform: uppercase;
+      }
+    </style>
+  </head>
+  <body>
+    <header id="dossier-header">
+      <div id="dossier-title">Subject ???</div>
+      <div id="dossier-subtitle">Dukhtar, Dispossessed — Personal Archive</div>
+      <div id="dossier-meta">
+        <span><a href="duktar.html">← Return to Archive</a></span>
+        <span style="display: flex; gap: 16px">
+          <a href="dossier-subject.html" style="color: #e8dcc8">Subject ???</a>
+          <a href="dossier-medical.html">Medical Files</a>
+          <a href="dossier.html">Legal Files</a>
+        </span>
+        <span>Last Modified: <span id="mod-date">—</span></span>
+      </div>
+    </header>
+
+    <div id="subject-layout">
+      <aside id="subject-sidebar">
+        <div class="sidebar-section">
+          <div class="sidebar-header">Subject File</div>
+          <ul class="sidebar-list">
+            <li>
+              <a href="dossier-subject.html" class="active"
+                >Citizenship Document</a
+              >
+            </li>
+            <li><a href="dossier-medical.html">Medical Files</a></li>
+            <li><a href="dossier.html">Legal Files</a></li>
+          </ul>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-header">Directory</div>
+          <ul class="sidebar-list">
+            <li><a href="duktar.html">Home</a></li>
+            <li><a href="turkestan.html">Turkestan Album</a></li>
+            <li><a href="prokudin.html">Prokudin-Gorsky</a></li>
+            <li><a href="postcards.html">Soviet Postcards</a></li>
+            <li><a href="about.html">About</a></li>
+          </ul>
+        </div>
+        <div class="meta-block">
+          <div class="sidebar-header">Record Metadata</div>
+          <div class="meta-row">
+            <span class="meta-key">Status</span
+            ><span class="meta-val">Unrestricted</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-key">Origin</span
+            ><span class="meta-val">Dushanbe, TJK</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-key">Issued</span
+            ><span class="meta-val">2003</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-key">Custodian</span
+            ><span class="meta-val">Subject</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-key">Condition</span
+            ><span class="meta-val">Degrading</span>
+          </div>
+        </div>
+      </aside>
+
+      <main id="subject-main">
+        <div class="section-header">Citizenship Documentation</div>
+
+        <div id="citizen-canvas-wrap">
+          <canvas
+            class="distort-canvas"
+            id="citizen-canvas"
+            data-src="images/citizen.jpg"
+            width="680"
+            height="510"
+          ></canvas>
+          <p class="doc-caption">
+            Certificate of Citizenship — United States of America — 2003
+          </p>
+        </div>
+
+        <div class="doc-note">
+          <p>
+            This document marks the administrative terminus of a particular
+            legal trajectory: stateless subject → ward of the Russian Federation
+            → naturalized citizen of the United States. It does not record what
+            preceded it. The chain of custody for the subject begins here,
+            officially.
+          </p>
+        </div>
+      </main>
+    </div>
+
+    <footer id="dossier-footer">
+      <span>Interactions: <span id="interaction-count">0</span></span>
+      <span>Readers Present: <span id="presence-count">—</span></span>
+      <span>duktar, dispossessed — copyright Anna M. Zimmer 2026</span>
+    </footer>
+
+    <script src="socket.io.min.js"></script>
+    <script src="distort-text.js"></script>
+    <script src="sketch2.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        setTimeout(() => document.dispatchEvent(new Event("contentLoaded")), 0);
+        setTimeout(() => {
+          if (typeof fetchBentImages === "function") fetchBentImages();
+          if (typeof attachCanvasInteractions === "function")
+            attachCanvasInteractions();
+        }, 700);
+      });
+
+      window.applyNodeMove = function (nodeId, x, y) {};
+    </script>
+  </body>
+</html>

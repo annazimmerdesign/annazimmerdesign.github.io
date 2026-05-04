@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>duktar — Turkestan Album</title>
+    <link rel="stylesheet" href="ds.css" />
+    <style>
+      #gallery-wrapper {
+        position: relative;
+        min-height: 100vh;
+        padding: 0;
+      }
+
+      #gallery-header {
+        background: #1c1208;
+        border-bottom: 2px solid #3b2a1a;
+        padding: 14px 14px 10px;
+        position: relative;
+        z-index: 10;
+      }
+
+      #gallery-title {
+        font-family: "Anthony", "Courier New", monospace;
+        font-size: 2rem;
+        font-weight: bold;
+        letter-spacing: 0.08em;
+        color: #e8dcc8;
+        text-transform: uppercase;
+        line-height: 1.1;
+        margin-bottom: 3px;
+      }
+
+      #gallery-subtitle {
+        font-family: "ApfelGrotezk", Georgia, serif;
+        font-size: 0.72rem;
+        letter-spacing: 0.2em;
+        color: #a09080;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+      }
+
+      #gallery-meta {
+        border-top: 1px solid #3b2a1a;
+        padding-top: 6px;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      #gallery-meta span {
+        font-family: "ApfelGrotezk", Georgia, serif;
+        font-size: 0.68rem;
+        letter-spacing: 0.1em;
+        color: #a09080;
+        text-transform: uppercase;
+      }
+
+      #gallery-field {
+        position: relative;
+        width: 100%;
+        min-height: calc(100vh - 80px);
+        overflow: hidden;
+      }
+
+      .photo-item {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        cursor: grab;
+        z-index: 2;
+      }
+      .photo-item.dragging {
+        cursor: grabbing;
+      }
+
+      .photo-item canvas {
+        display: block;
+        background: #2e1f12;
+        border: 1px solid #3b2a1a;
+      }
+
+      .photo-item .photo-caption {
+        font-family: "ApfelGrotezk", Georgia, serif;
+        font-size: 0.58rem;
+        color: #a09080;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-top: 3px;
+        max-width: 100%;
+      }
+
+      #gallery-footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #e8dcc8;
+        border-top: 2px solid #c9bfad;
+        padding: 5px 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 100;
+      }
+
+      #gallery-footer span {
+        font-family: "ApfelGrotezk", Georgia, serif;
+        font-size: 0.68rem;
+        letter-spacing: 0.08em;
+        color: #1c1208;
+        text-transform: uppercase;
+      }
+
+      #back-link {
+        font-family: "ApfelGrotezk", Georgia, serif;
+        font-size: 0.68rem;
+        letter-spacing: 0.1em;
+        color: #a09080;
+        text-transform: uppercase;
+        text-decoration: none;
+      }
+
+      #back-link:hover {
+        color: #e8dcc8;
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body style="background: #1c1208; margin: 0; padding: 0">
+    <div id="gallery-wrapper">
+      <header id="gallery-header">
+        <div id="gallery-title">Turkestan Album</div>
+        <div id="gallery-subtitle">
+          Turkestan Album, 1871–72 — Russian Imperial Geographical Society
+        </div>
+        <div id="gallery-meta">
+          <span
+            ><a href="duktar.html" id="back-link">← Return to Archive</a></span
+          >
+          <span>Last Modified: <span id="mod-date">—</span></span>
+        </div>
+      </header>
+
+      <div id="gallery-field">
+        <!-- images placed by JS -->
+      </div>
+
+      <footer id="gallery-footer">
+        <span>Interactions: <span id="interaction-count">0</span></span>
+        <span>Readers Present: <span id="presence-count">—</span></span>
+        <span>duktar, dispossessed — copyright Anna M. Zimmer 2026</span>
+      </footer>
+    </div>
+
+    <script src="socket.io.min.js"></script>
+    <script src="distort-text.js"></script>
+    <script src="sketch2.js"></script>
+    <script>
+      // Gallery-specific layout — positions seeded, not random each load
+      // TODO: replace with actual Turkestan Album images
+      const PHOTOS = [
+        {
+          src: "images/turkestan1.jpg",
+          caption: "Turkestan Album, 1871–72 — [untitled]",
+          w: 380,
+          x: 40,
+          y: 50,
+          rot: -0.8,
+        },
+        {
+          src: "images/turkestan2.jpg",
+          caption: "Turkestan Album, 1871–72 — [untitled]",
+          w: 440,
+          x: 320,
+          y: 90,
+          rot: 0.6,
+        },
+        {
+          src: "images/turkestan3.jpg",
+          caption: "Turkestan Album, 1871–72 — [untitled]",
+          w: 360,
+          x: 720,
+          y: 30,
+          rot: -0.4,
+        },
+        {
+          src: "images/turkestan4.jpg",
+          caption: "Turkestan Album, 1871–72 — [untitled]",
+          w: 400,
+          x: 80,
+          y: 420,
+          rot: 0.9,
+        },
+        {
+          src: "images/turkestan5.jpg",
+          caption: "Turkestan Album, 1871–72 — [untitled]",
+          w: 420,
+          x: 460,
+          y: 380,
+          rot: -0.5,
+        },
+      ];
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const field = document.getElementById("gallery-field");
+
+        PHOTOS.forEach((photo, i) => {
+          const item = document.createElement("div");
+          item.className = "photo-item";
+          item.style.cssText = `
+      left: ${photo.x}px;
+      top: ${photo.y}px;
+      width: ${photo.w}px;
+      transform: rotate(${photo.rot}deg);
+    `;
+
+          const canvas = document.createElement("canvas");
+          canvas.className = "distort-canvas";
+          canvas.dataset.src = photo.src;
+          canvas.width = photo.w;
+          canvas.height = Math.round(photo.w * 0.75); // placeholder ratio, corrects on load
+          canvas.style.width = "100%";
+
+          // correct aspect ratio on image load
+          const img = new Image();
+          img.onload = () => {
+            const ratio = img.naturalHeight / img.naturalWidth;
+            canvas.height = Math.round(photo.w * ratio);
+            const ctx = canvas.getContext("2d");
+            canvas._loaded = true;
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          };
+          img.onerror = () => {
+            canvas._loaded = true;
+            const ctx = canvas.getContext("2d");
+            ctx.fillStyle = "#2e1f12";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#a09080";
+            ctx.font = "10px Courier New";
+            ctx.fillText(photo.src, 8, canvas.height / 2);
+          };
+          img.src = photo.src;
+
+          const caption = document.createElement("div");
+          caption.className = "photo-caption";
+          caption.textContent = photo.caption;
+
+          item.appendChild(canvas);
+          item.appendChild(caption);
+          field.appendChild(item);
+
+          // ---- Drag ----
+          let dragging = false,
+            dragOffX = 0,
+            dragOffY = 0,
+            hasDragged = false;
+
+          item.addEventListener("mousedown", (e) => {
+            dragging = true;
+            hasDragged = false;
+            document
+              .querySelectorAll(".photo-item")
+              .forEach((el) => (el.style.zIndex = "2"));
+            item.style.zIndex = "50";
+            const fieldRect = field.getBoundingClientRect();
+            dragOffX = e.clientX - fieldRect.left - item.offsetLeft;
+            dragOffY =
+              e.clientY - fieldRect.top - item.offsetTop + field.scrollTop;
+            item.classList.add("dragging");
+            item.style.transition = "none";
+            e.preventDefault();
+          });
+
+          document.addEventListener("mousemove", (e) => {
+            if (!dragging) return;
+            hasDragged = true;
+            const fieldRect = field.getBoundingClientRect();
+            const x = e.clientX - fieldRect.left - dragOffX;
+            const y = e.clientY - fieldRect.top - dragOffY + field.scrollTop;
+            item.style.left = x + "px";
+            item.style.top = y + "px";
+          });
+
+          document.addEventListener("mouseup", () => {
+            if (!dragging) return;
+            dragging = false;
+            item.classList.remove("dragging");
+            item.style.transition = "";
+            if (
+              hasDragged &&
+              typeof socket !== "undefined" &&
+              socketConnected
+            ) {
+              const nodeId = "turkestan_" + photo.src.split("/").pop();
+              socket.emit("node_move", {
+                nodeId,
+                x: parseInt(item.style.left),
+                y: parseInt(item.style.top),
+              });
+            }
+          });
+
+          // ---- Click: bring to foreground ----
+          item.addEventListener("click", () => {
+            if (hasDragged) return;
+            document
+              .querySelectorAll(".photo-item")
+              .forEach((el) => (el.style.zIndex = "2"));
+            item.style.zIndex = "50";
+          });
+        });
+
+        // set field height to contain all items
+        const maxBottom = Math.max(...PHOTOS.map((p) => p.y + 400));
+        field.style.minHeight = maxBottom + 100 + "px";
+      });
+    </script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        setTimeout(() => document.dispatchEvent(new Event("contentLoaded")), 0);
+      });
+
+      // Receive saved positions from server (broadcast on connect via node_moved)
+      window.applyNodeMove = function (nodeId, x, y) {
+        if (!nodeId.startsWith("turkestan_")) return;
+        const filename = nodeId.replace("turkestan_", "");
+        document.querySelectorAll(".photo-item").forEach((item) => {
+          const canvas = item.querySelector(".distort-canvas");
+          if (
+            canvas &&
+            canvas.dataset.src &&
+            canvas.dataset.src.split("/").pop() === filename
+          ) {
+            item.style.left = x + "px";
+            item.style.top = y + "px";
+          }
+        });
+      };
+    </script>
+  </body>
+</html>

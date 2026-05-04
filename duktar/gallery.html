@@ -247,7 +247,7 @@
     </script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
-        document.dispatchEvent(new Event("contentLoaded"));
+        setTimeout(() => document.dispatchEvent(new Event("contentLoaded")), 0);
       });
     </script>
   </body>

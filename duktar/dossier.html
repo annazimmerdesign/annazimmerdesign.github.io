@@ -645,7 +645,8 @@
     <script>
       // fire contentLoaded manually since content-loader.js isn't used here
       document.addEventListener("DOMContentLoaded", () => {
-        document.dispatchEvent(new Event("contentLoaded"));
+        // defer so sketch2.js has registered its contentLoaded listener
+        setTimeout(() => document.dispatchEvent(new Event("contentLoaded")), 0);
       });
     </script>
     <script>

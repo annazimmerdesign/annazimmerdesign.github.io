@@ -27,7 +27,16 @@ _save_lock = threading.Lock()
 bent_images = {}
 MAX_BEND_PASSES = 20
 bend_pass_counts = {}
-IMAGE_OFFSETS = {'image1.jpg': 0, 'image2.jpg': 200, 'image3.jpg': 400, 'image4.jpg': 100, 'image5.jpg': 300}
+IMAGE_OFFSETS = {
+    'image1.jpg': 0, 'image2.jpg': 200, 'image3.jpg': 400,
+    'image4.jpg': 100, 'image5.jpg': 300,
+    # dossier images — lower offset so they bend earlier
+    'subject1.jpg': 50, 'subject2.jpg': 150, 'subject3.jpg': 250,
+    'subject4.jpg': 350, 'subject5.jpg': 100, 'subject6.jpg': 200,
+    'subject7.jpg': 300, 'subject8.jpg': 400, 'subject9.jpg': 50,
+    'subject10.jpg': 175, 'subject11.jpg': 275, 'subject12.jpg': 375,
+    'subject13.jpg': 125, 'subject14.jpg': 225, 'subject15.jpg': 325,
+}
 
 
 def find_sos_offset(data):
@@ -161,8 +170,9 @@ def maybe_bend_images():
     for filename in list(bent_images.keys()):
         passes = bend_pass_counts.get(filename, 0)
         if passes >= MAX_BEND_PASSES: continue
-        offset = IMAGE_OFFSETS.get(filename, 500)
-        expected = min(MAX_BEND_PASSES, max(0, (interactions-offset)//1000))
+        # any registered image gets an offset — unknown files default to 100
+        offset = IMAGE_OFFSETS.get(filename, 100)
+        expected = min(MAX_BEND_PASSES, max(0, (interactions - offset) // 500))
         if passes >= expected: continue
         apply_bend_pass(filename)
 

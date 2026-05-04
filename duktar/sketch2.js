@@ -35,11 +35,10 @@ function initSocket() {
   });
 
   socket.on('connect', () => {
-  socketConnected = true;
-  console.log('Socket connected:', socket.id);
-  // register images now that socket is confirmed live
-  setTimeout(registerImagesWithServer, 500);
-});
+    socketConnected = true;
+    console.log('Socket connected:', socket.id);
+    registerImagesWithServer();
+  });
 
   socket.on('disconnect', () => {
     socketConnected = false;
@@ -81,23 +80,23 @@ function initSocket() {
     if (!socketConnected) loadFromSupabase();
   });
 
-  socket.on('image_update', (data) => {
-  // find canvas with matching src and update it
-  document.querySelectorAll('.distort-canvas').forEach(canvas => {
-    const src = canvas.dataset.src || canvas.dataset.originalSrc;
-    // match by filename
-    if (src && src.split('/').pop() === data.filename.split('/').pop()) {
-      const img = new Image();
-      img.onload = () => {
-        canvas._originalSrc = data.data;
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      };
-      img.src = data.data;
-    }
+  socket.on('image_updated', (data) => {
+    // server emits {filename, passes, t} — re-fetch bent image via HTTP
+    const bentUrl = `${SOCKET_SERVER_URL}/image/${data.filename}?t=${data.t || Date.now()}`;
+    document.querySelectorAll('.distort-canvas').forEach(canvas => {
+      const src = canvas.dataset.src || canvas.dataset.originalSrc || '';
+      if (src.split('/').pop() === data.filename.split('/').pop()) {
+        const img = new Image();
+        img.onload = () => {
+          canvas._bentSrc = bentUrl;
+          const ctx = canvas.getContext('2d');
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        };
+        img.src = bentUrl;
+      }
+    });
   });
-});
 }
 
 // ---- Supabase fallback ----

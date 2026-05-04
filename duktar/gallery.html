@@ -114,12 +114,13 @@
         font-family: "ApfelGrotezk", Georgia, serif;
         font-size: 0.68rem;
         letter-spacing: 0.1em;
-        color: #1c1208;
+        color: #a09080;
         text-transform: uppercase;
         text-decoration: none;
       }
 
       #back-link:hover {
+        color: #e8dcc8;
         text-decoration: underline;
       }
     </style>
@@ -253,6 +254,10 @@
           item.addEventListener("mousedown", (e) => {
             dragging = true;
             hasDragged = false;
+            document
+              .querySelectorAll(".photo-item")
+              .forEach((el) => (el.style.zIndex = "2"));
+            item.style.zIndex = "50";
             const fieldRect = field.getBoundingClientRect();
             dragOffX = e.clientX - fieldRect.left - item.offsetLeft;
             dragOffY =
@@ -282,8 +287,7 @@
               typeof socket !== "undefined" &&
               socketConnected
             ) {
-              const nodeId =
-                "gallery_" + photo.src.split("/").pop().replace(".", "_");
+              const nodeId = "gallery_" + photo.src.split("/").pop();
               socket.emit("node_move", {
                 nodeId,
                 x: parseInt(item.style.left),
@@ -314,11 +318,8 @@
 
       // Receive saved positions from server (broadcast on connect via node_moved)
       window.applyNodeMove = function (nodeId, x, y) {
-        // match gallery_image1_jpg -> photo-item containing images/image1.jpg
-        const filename = nodeId
-          .replace("gallery_", "")
-          .replace("_jpg", ".jpg")
-          .replace(/_([^_]+)$/, ".$1");
+        if (!nodeId.startsWith("gallery_")) return;
+        const filename = nodeId.replace("gallery_", "");
         document.querySelectorAll(".photo-item").forEach((item) => {
           const canvas = item.querySelector(".distort-canvas");
           if (

@@ -642,6 +642,10 @@
         node.addEventListener("mousedown", (e) => {
           dragging = true;
           hasDragged = false;
+          document
+            .querySelectorAll(".doc-node")
+            .forEach((n) => (n.style.zIndex = "2"));
+          node.style.zIndex = "50";
           const field = document.getElementById("constellation-field");
           const fieldRect = field.getBoundingClientRect();
           dragOffX = e.clientX - fieldRect.left - node.offsetLeft;

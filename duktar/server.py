@@ -51,7 +51,7 @@ def databend(data, intensity, seed):
     try:
         img = Image.open(io.BytesIO(bytes(data))).convert('RGB')
         w, h = img.size
-        quality = max(10, int(90 - intensity * 45))
+        quality = max(55, int(90 - intensity * 25))
         for _ in range(max(1, int(intensity * 3) + 1)):
             buf = io.BytesIO()
             img.save(buf, format='JPEG', quality=quality)
@@ -70,7 +70,7 @@ def databend(data, intensity, seed):
                     try: pixels[x, y] = color
                     except: pass
         out = io.BytesIO()
-        img.save(out, format='JPEG', quality=max(15, quality-5))
+        img.save(out, format='JPEG', quality=max(55, quality-5))
         result = bytearray(out.getvalue())
         if intensity > 0.5:
             start, end = find_sos_offset(result), len(result)-2
@@ -121,7 +121,7 @@ def apply_bend_pass(filename, intensity_override=None):
     if filename not in bent_images: return
     passes = bend_pass_counts.get(filename, 0)
     if passes >= MAX_BEND_PASSES: return
-    intensity = intensity_override if intensity_override else (0.25 + (passes / MAX_BEND_PASSES) * 0.70)
+    intensity = intensity_override if intensity_override else (0.02 + (passes / MAX_BEND_PASSES) * 0.96)
     seed = passes * 7919 + hash(filename) % 100000
     bent_images[filename] = databend(bent_images[filename], intensity, seed)
     bend_pass_counts[filename] = passes + 1
@@ -162,7 +162,7 @@ def maybe_bend_images():
         passes = bend_pass_counts.get(filename, 0)
         if passes >= MAX_BEND_PASSES: continue
         offset = IMAGE_OFFSETS.get(filename, 500)
-        expected = min(MAX_BEND_PASSES, max(0, (interactions - offset) // 500))
+        expected = min(MAX_BEND_PASSES, max(0, (interactions-offset)//1000))
         if passes >= expected: continue
         apply_bend_pass(filename)
 
@@ -296,14 +296,19 @@ def on_register_image(data):
 
 @socketio.on('image_click')
 def on_image_click(data):
-    """Each click or mouseenter triggers one bend pass, permanent for all visitors."""
+    """Click = full bend pass. Hover = lighter pass. Both permanent for all visitors."""
     filename = os.path.basename(data.get('filename',''))
+    interaction_type = data.get('type', 'click')
     if not filename: return
     if filename not in bent_images: register_image(filename)
     passes = bend_pass_counts.get(filename, 0)
     if passes >= MAX_BEND_PASSES: return
-    apply_bend_pass(filename)
-    print(f'image_click: {filename}, now {bend_pass_counts.get(filename,0)}/{MAX_BEND_PASSES} passes')
+    if interaction_type == 'hover':
+        intensity = 0.01 + (passes/MAX_BEND_PASSES)*0.5
+        apply_bend_pass(filename, intensity_override=intensity)
+    else:
+        apply_bend_pass(filename)
+    print(f'image_click ({interaction_type}): {filename}, now {bend_pass_counts.get(filename,0)} passes')
 
 
 @socketio.on('node_move')

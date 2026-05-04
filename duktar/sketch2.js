@@ -1,5 +1,5 @@
 /**
- * sketch2.js — Dukhtar, Dispossessed
+ * sketch2.js - Dukhtar, Dispossessed
  * Live damage layer via Flask-SocketIO, Supabase as persistent fallback.
  */
 

@@ -34,6 +34,26 @@ function initSocket() {
     reconnectionDelay: 2000,
   });
 
+  socket.on('images_ready', (data) => {
+  // fetch each bent image via HTTP
+  Object.keys(data.images).forEach(filename => {
+    const url = `https://dukhtar-server.onrender.com/image/${filename}?t=${Date.now()}`;
+    document.querySelectorAll('.distort-canvas').forEach(canvas => {
+      const src = canvas.dataset.src || '';
+      if (src.split('/').pop() === filename) {
+        const img = new Image();
+        img.onload = () => {
+          canvas._originalSrc = url;
+          const ctx = canvas.getContext('2d');
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        };
+        img.src = url;
+      }
+    });
+  });
+});
+
   socket.on('connect', () => {
   socketConnected = true;
   console.log('Socket connected:', socket.id);
@@ -81,20 +101,28 @@ function initSocket() {
     if (!socketConnected) loadFromSupabase();
   });
 
-  socket.on('image_update', (data) => {
-    document.querySelectorAll('.distort-canvas').forEach(canvas => {
-      const src = canvas.dataset.src || canvas.dataset.originalSrc;
-      if (src && src.split('/').pop() === data.filename.split('/').pop()) {
-        const img = new Image();
-        img.onload = () => {
-          canvas._originalSrc = data.data;
-          const ctx = canvas.getContext('2d');
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        };
-        img.src = data.data;
-      }
-    });
+socket.on('image_update', (data) => {
+  document.querySelectorAll('.distort-canvas').forEach(canvas => {
+    const src = canvas.dataset.src || canvas.dataset.originalSrc;
+    if (src && src.split('/').pop() === data.filename.split('/').pop()) {
+      // use HTTP endpoint with cache-busting timestamp
+      // much faster than base64 over WebSocket
+      const img = new Image();
+      const url = `https://dukhtar-server.onrender.com/image/${data.filename}?t=${Date.now()}`;
+      img.onload = () => {
+        canvas._originalSrc = url;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      };
+      img.src = url;
+    }
+  });
+});
+
+  // apply node position updates from other visitors
+  socket.on('node_moved', (data) => {
+    if (window.applyNodeMove) window.applyNodeMove(data.nodeId, data.x, data.y);
   });
 }
 
@@ -167,15 +195,24 @@ function initCanvases() {
     if (!src) return;
 
     const img = new Image();
-    img.onload = () => {
-      const ratio = img.naturalHeight / img.naturalWidth;
-      canvas.height = Math.round(canvas.width * ratio);
-      canvas._loaded = true;
-      canvas._originalSrc = src;
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-
-    };
+   img.onload = () => {
+  const ratio = img.naturalHeight / img.naturalWidth;
+  canvas.height = Math.round(canvas.width * ratio);
+  canvas._loaded = true;
+  canvas._originalSrc = src;
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  
+  // fetch current bent state from server
+  const filename = src.split('/').pop();
+  const bentUrl = `https://dukhtar-server.onrender.com/image/${filename}?t=${Date.now()}`;
+  const bentImg = new Image();
+  bentImg.onload = () => {
+    canvas._originalSrc = bentUrl;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(bentImg, 0, 0, canvas.width, canvas.height);
+  };
+  bentImg.src = bentUrl;
+};
 
     img.onerror = () => {
       canvas._loaded = true;
@@ -189,25 +226,13 @@ function initCanvases() {
 
     img.src = src;
 
-    // hover — light permanent bend pass for all visitors
-let lastHoverEmit = 0;
-canvas.addEventListener('mouseenter', () => {
-  const now = Date.now();
-  if (now - lastHoverEmit < 3000) return; // max once per 3 seconds per image
-  lastHoverEmit = now;
-  const filename = (canvas.dataset.src || '').split('/').pop();
-  if (filename && socket && socketConnected) {
-    socket.emit('image_click', { filename, type: 'hover' });
-  }
-});
-
-// click — heavier permanent bend pass for all visitors  
-canvas.addEventListener('click', () => {
-  const filename = (canvas.dataset.src || '').split('/').pop();
-  if (filename && socket && socketConnected) {
-    socket.emit('image_click', { filename, type: 'click' });
-  }
-});
+    // trigger extra bend pass when cursor enters canvas
+    canvas.addEventListener('mouseenter', () => {
+      const src = canvas.dataset.src;
+      if (src && socket && socketConnected) {
+        socket.emit('image_interaction', { filename: src.split('/').pop() });
+      }
+    });
   });
 }
 

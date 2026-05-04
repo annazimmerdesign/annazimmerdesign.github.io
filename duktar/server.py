@@ -353,6 +353,7 @@ def apply_damage(gx, gy):
 # ---- SocketIO events ----
 
 @socketio.on('connect')
+@socketio.on('connect')
 def on_connect():
     global connected_clients
     connected_clients += 1
@@ -361,13 +362,11 @@ def on_connect():
         'interactions': interactions,
         'connected': connected_clients,
     })
-    for filename, data in bent_images.items():
-        b64 = base64.b64encode(bytes(data)).decode('utf-8')
-        emit('image_update', {
-            'filename': filename,
-            'data': f'data:image/jpeg;base64,{b64}',
-            'passes': bend_pass_counts.get(filename, 0),
-        })
+    # tell client which images are available and at what pass count
+    # client fetches via HTTP — no base64 over socket
+    emit('images_ready', {
+        'images': {k: v for k, v in bend_pass_counts.items()}
+    })
     socketio.emit('presence', {'connected': connected_clients})
     print(f'Client connected. Total: {connected_clients}')
 
@@ -425,36 +424,17 @@ def on_register_image(data):
 
 @socketio.on('image_click')
 def on_image_click(data):
+    """
+    User clicked an image — apply one permanent databend pass.
+    Broadcast updated image to ALL current and future visitors.
+    """
     filename = os.path.basename(data.get('filename', ''))
-    interaction_type = data.get('type', 'click')
     if not filename:
         return
     if filename not in bent_images:
         register_image(filename)
-
-    passes = bend_pass_counts.get(filename, 0)
-    if passes >= MAX_BEND_PASSES:
-        return
-
-    if interaction_type == 'hover':
-        # lighter pass — lower intensity
-        intensity = 0.01 + (passes / MAX_BEND_PASSES) * 0.5
-        seed = passes * 7919 + hash(filename) % 100000
-        bent_images[filename] = databend(bent_images[filename], intensity, seed)
-        bend_pass_counts[filename] = passes + 1
-    else:
-        # full pass
-        apply_bend_pass(filename)
-        return
-
-    bent_b64 = base64.b64encode(bytes(bent_images[filename])).decode('utf-8')
-    socketio.emit('image_update', {
-        'filename': filename,
-        'data': f'data:image/jpeg;base64,{bent_b64}',
-        'passes': bend_pass_counts[filename],
-    })
-    save_bent_image_to_supabase(filename, bent_b64, bend_pass_counts[filename])
-    print(f'Image {interaction_type}: {filename}, pass {bend_pass_counts[filename]}')
+    apply_bend_pass(filename)
+    print(f'Image clicked: {filename} — bend pass applied')
 
 
 @socketio.on('request_full_map')
@@ -465,6 +445,39 @@ def on_request_full_map():
         'connected': connected_clients,
     })
 
+
+
+@socketio.on('node_move')
+def on_node_move(data):
+    """Broadcast node position to all visitors and persist to Supabase."""
+    node_id = data.get('nodeId', '')
+    x = data.get('x', 0)
+    y = data.get('y', 0)
+    if not node_id:
+        return
+    # broadcast to all other clients
+    emit('node_moved', {'nodeId': node_id, 'x': x, 'y': y}, broadcast=True, include_self=False)
+    # persist to Supabase
+    try:
+        key = f'node_pos_{node_id}'
+        payload = {'key': key, 'value': json.dumps({'x': x, 'y': y})}
+        res = requests.get(
+            f'{SUPABASE_URL}/rest/v1/site_state?key=eq.{key}&select=id',
+            headers=HEADERS, timeout=8
+        )
+        existing = res.json()
+        if existing:
+            requests.patch(
+                f'{SUPABASE_URL}/rest/v1/site_state?key=eq.{key}',
+                headers=HEADERS, json=payload, timeout=8
+            )
+        else:
+            requests.post(
+                f'{SUPABASE_URL}/rest/v1/site_state',
+                headers=HEADERS, json=payload, timeout=8
+            )
+    except Exception as e:
+        print(f'Failed to save node position: {e}')
 
 # ---- Boot ----
 

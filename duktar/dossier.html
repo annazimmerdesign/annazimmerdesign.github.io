@@ -649,19 +649,95 @@
       });
     </script>
     <script>
+      // ---- Node interactions: click to expand + databend, drag to reposition ----
+
+      // load saved positions from server on connect
+      // positions stored as {nodeId: {x, y}} in Supabase via socket
+      const nodePositions = {};
+
       document.querySelectorAll(".doc-node").forEach((node) => {
+        const nodeId = node.id;
+
+        // ---- Drag ----
+        let dragging = false;
+        let dragOffX = 0,
+          dragOffY = 0;
+        let hasDragged = false;
+
+        node.addEventListener("mousedown", (e) => {
+          dragging = true;
+          hasDragged = false;
+          const field = document.getElementById("constellation-field");
+          const fieldRect = field.getBoundingClientRect();
+          dragOffX = e.clientX - fieldRect.left - node.offsetLeft;
+          dragOffY =
+            e.clientY - fieldRect.top - node.offsetTop + field.scrollTop;
+          node.style.transition = "none";
+          e.preventDefault();
+        });
+
+        document.addEventListener("mousemove", (e) => {
+          if (!dragging) return;
+          hasDragged = true;
+          const field = document.getElementById("constellation-field");
+          const fieldRect = field.getBoundingClientRect();
+          const x = e.clientX - fieldRect.left - dragOffX;
+          const y = e.clientY - fieldRect.top - dragOffY + field.scrollTop;
+          node.style.left = x + "px";
+          node.style.top = y + "px";
+          drawConnections();
+        });
+
+        document.addEventListener("mouseup", (e) => {
+          if (!dragging) return;
+          dragging = false;
+          node.style.transition = "";
+          if (hasDragged && socket && socketConnected) {
+            // broadcast new position to all visitors — permanent
+            socket.emit("node_move", {
+              nodeId,
+              x: parseInt(node.style.left),
+              y: parseInt(node.style.top),
+            });
+          }
+        });
+
+        // ---- Click: expand + databend ----
         node.addEventListener("click", () => {
+          if (hasDragged) return; // don't trigger click after drag
+
           const isExpanded = node.classList.contains("expanded");
           document.querySelectorAll(".doc-node.expanded").forEach((n) => {
             n.classList.remove("expanded");
             n.style.zIndex = "";
           });
+
           if (!isExpanded) {
             node.classList.add("expanded");
             node.style.zIndex = "50";
+
+            // databend the image in this node
+            const canvas = node.querySelector(".distort-canvas");
+            if (canvas && socket && socketConnected) {
+              const filename = (canvas.dataset.src || "").split("/").pop();
+              if (filename) {
+                socket.emit("image_click", { filename, type: "click" });
+              }
+            }
           }
         });
       });
+
+      // ---- Receive position updates from other visitors ----
+      // wired into sketch2.js socket via window.applyNodeMove
+      window.applyNodeMove = function (nodeId, x, y) {
+        const node = document.getElementById(nodeId);
+        if (node) {
+          node.style.left = x + "px";
+          node.style.top = y + "px";
+          drawConnections();
+        }
+      };
     </script>
   </body>
 </html>

@@ -316,3 +316,13 @@ document.addEventListener('contentLoaded', () => {
     fetch('https://dukhtar-server.onrender.com/health').catch(() => {});
   }, 4 * 60 * 1000);
 });
+
+
+window.resetArchive = async function() {
+  await fetch(`${SUPABASE_URL}/rest/v1/archive_state?id=eq.1`, {
+    method: 'PATCH',
+    headers: SUPABASE_HEADERS,
+    body: JSON.stringify({ passes: 0, damage_map: null })
+  });
+  location.reload();
+};

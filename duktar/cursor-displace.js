@@ -113,16 +113,18 @@
     if (!remoteCursorDots[socketId]) {
       const dot = document.createElement('div');
       dot.style.cssText = `
-        position: fixed; width: 3px; height: 3px;
-        background: rgba(232,220,200,0.35); border-radius: 50%;
+        position: fixed; width: 22px; height: 22px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(10,6,3,0.5) 0%, rgba(10,6,3,0.2) 45%, transparent 100%);
+        filter: blur(2.5px);
         pointer-events: none; z-index: 9998;
         transition: left 0.08s linear, top 0.08s linear;
       `;
       document.body.appendChild(dot);
       remoteCursorDots[socketId] = dot;
     }
-    remoteCursorDots[socketId].style.left = (x - 1.5) + 'px';
-    remoteCursorDots[socketId].style.top  = (y - 1.5) + 'px';
+    remoteCursorDots[socketId].style.left = (x - 11) + 'px';
+    remoteCursorDots[socketId].style.top  = (y - 11) + 'px';
   };
 
   window.removeRemoteCursor = function(socketId) {

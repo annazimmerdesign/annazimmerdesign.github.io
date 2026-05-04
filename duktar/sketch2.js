@@ -38,7 +38,6 @@ function initSocket() {
     socketConnected = true;
     console.log('Socket connected:', socket.id);
     registerImagesWithServer();
-    // fetch bent state after registration has had time to process
     setTimeout(fetchBentImages, 1200);
   });
 
@@ -83,20 +82,17 @@ function initSocket() {
   });
 
   socket.on('image_updated', (data) => {
-    // server emits {filename, passes, t} — re-fetch the bent image via HTTP
     refreshBentCanvas(data.filename, data.t || Date.now());
   });
 }
 
 // ---- Bent image fetching ----
 
-// Re-fetch a single bent image from the server and repaint matching canvases.
 function refreshBentCanvas(filename, cacheBuster) {
   const bentUrl = `${SOCKET_SERVER_URL}/image/${filename}?t=${cacheBuster || Date.now()}`;
   document.querySelectorAll('.distort-canvas').forEach(canvas => {
     const src = canvas.dataset.src || canvas.dataset.originalSrc || '';
-    if (!src) return;
-    if (src.split('/').pop() !== filename) return;
+    if (!src || src.split('/').pop() !== filename) return;
     const img = new Image();
     img.onload = () => {
       canvas._bentSrc = bentUrl;
@@ -109,8 +105,6 @@ function refreshBentCanvas(filename, cacheBuster) {
   });
 }
 
-// Fetch current bent state for ALL registered canvases.
-// Called after registration so the server has had time to load image bytes.
 function fetchBentImages() {
   const seen = new Set();
   document.querySelectorAll('.distort-canvas').forEach(canvas => {
@@ -120,6 +114,26 @@ function fetchBentImages() {
     if (!filename || seen.has(filename)) return;
     seen.add(filename);
     refreshBentCanvas(filename, Date.now());
+  });
+}
+
+// ---- Canvas interaction: click or mouseenter triggers a bend pass ----
+// mouseenter fires once per boundary crossing — not on every pixel of movement.
+
+function attachCanvasInteractions() {
+  document.querySelectorAll('.distort-canvas').forEach(canvas => {
+    if (canvas._interactionsAttached) return;
+    canvas._interactionsAttached = true;
+
+    function emitBend() {
+      if (!socket || !socketConnected) return;
+      const src = canvas.dataset.src || canvas.dataset.originalSrc || '';
+      const filename = src.split('/').pop();
+      if (filename) socket.emit('image_click', { filename });
+    }
+
+    canvas.addEventListener('mouseenter', emitBend);
+    canvas.addEventListener('click', emitBend);
   });
 }
 
@@ -199,7 +213,7 @@ function initCanvases() {
       canvas._originalSrc = src;
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-      // bent state is fetched separately via fetchBentImages() after registration
+      // bent state fetched separately via fetchBentImages() after registration
     };
 
     img.onerror = () => {
@@ -213,6 +227,7 @@ function initCanvases() {
     };
 
     img.src = src;
+    attachCanvasInteractions();
   });
 }
 

@@ -91,7 +91,6 @@
       }
       .doc-node.expanded {
         z-index: 50;
-        transform: scale(2.2) !important;
       }
       .doc-node canvas {
         display: block;
@@ -645,7 +644,6 @@
     <script>
       // fire contentLoaded manually since content-loader.js isn't used here
       document.addEventListener("DOMContentLoaded", () => {
-        // defer so sketch2.js has registered its contentLoaded listener
         setTimeout(() => document.dispatchEvent(new Event("contentLoaded")), 0);
       });
     </script>
@@ -703,29 +701,14 @@
           }
         });
 
-        // ---- Click: expand + databend ----
+        // ---- Click: bring to foreground ----
         node.addEventListener("click", () => {
-          if (hasDragged) return; // don't trigger click after drag
-
-          const isExpanded = node.classList.contains("expanded");
-          document.querySelectorAll(".doc-node.expanded").forEach((n) => {
-            n.classList.remove("expanded");
-            n.style.zIndex = "";
+          if (hasDragged) return;
+          // lower all others, raise this one
+          document.querySelectorAll(".doc-node").forEach((n) => {
+            n.style.zIndex = "2";
           });
-
-          if (!isExpanded) {
-            node.classList.add("expanded");
-            node.style.zIndex = "50";
-
-            // databend the image in this node
-            const canvas = node.querySelector(".distort-canvas");
-            if (canvas && socket && socketConnected) {
-              const filename = (canvas.dataset.src || "").split("/").pop();
-              if (filename) {
-                socket.emit("image_click", { filename, type: "click" });
-              }
-            }
-          }
+          node.style.zIndex = "50";
         });
       });
 

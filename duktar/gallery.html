@@ -65,6 +65,11 @@
         position: absolute;
         display: flex;
         flex-direction: column;
+        cursor: grab;
+        z-index: 2;
+      }
+      .photo-item.dragging {
+        cursor: grabbing;
       }
 
       .photo-item canvas {
@@ -238,6 +243,63 @@
           item.appendChild(canvas);
           item.appendChild(caption);
           field.appendChild(item);
+
+          // ---- Drag ----
+          let dragging = false,
+            dragOffX = 0,
+            dragOffY = 0,
+            hasDragged = false;
+
+          item.addEventListener("mousedown", (e) => {
+            dragging = true;
+            hasDragged = false;
+            const fieldRect = field.getBoundingClientRect();
+            dragOffX = e.clientX - fieldRect.left - item.offsetLeft;
+            dragOffY =
+              e.clientY - fieldRect.top - item.offsetTop + field.scrollTop;
+            item.classList.add("dragging");
+            item.style.transition = "none";
+            e.preventDefault();
+          });
+
+          document.addEventListener("mousemove", (e) => {
+            if (!dragging) return;
+            hasDragged = true;
+            const fieldRect = field.getBoundingClientRect();
+            const x = e.clientX - fieldRect.left - dragOffX;
+            const y = e.clientY - fieldRect.top - dragOffY + field.scrollTop;
+            item.style.left = x + "px";
+            item.style.top = y + "px";
+          });
+
+          document.addEventListener("mouseup", () => {
+            if (!dragging) return;
+            dragging = false;
+            item.classList.remove("dragging");
+            item.style.transition = "";
+            if (
+              hasDragged &&
+              typeof socket !== "undefined" &&
+              socketConnected
+            ) {
+              const nodeId =
+                "gallery_" + photo.src.split("/").pop().replace(".", "_");
+              socket.emit("node_move", {
+                nodeId,
+                x: parseInt(item.style.left),
+                y: parseInt(item.style.top),
+              });
+            }
+          });
+
+          // ---- Click: bring to foreground ----
+          item.addEventListener("click", () => {
+            if (hasDragged) return;
+            document
+              .querySelectorAll(".photo-item")
+              .forEach((el) => (el.style.zIndex = "2"));
+            item.style.zIndex = "50";
+          });
         });
 
         // set field height to contain all items
@@ -249,6 +311,26 @@
       document.addEventListener("DOMContentLoaded", () => {
         setTimeout(() => document.dispatchEvent(new Event("contentLoaded")), 0);
       });
+
+      // Receive saved positions from server (broadcast on connect via node_moved)
+      window.applyNodeMove = function (nodeId, x, y) {
+        // match gallery_image1_jpg -> photo-item containing images/image1.jpg
+        const filename = nodeId
+          .replace("gallery_", "")
+          .replace("_jpg", ".jpg")
+          .replace(/_([^_]+)$/, ".$1");
+        document.querySelectorAll(".photo-item").forEach((item) => {
+          const canvas = item.querySelector(".distort-canvas");
+          if (
+            canvas &&
+            canvas.dataset.src &&
+            canvas.dataset.src.split("/").pop() === filename
+          ) {
+            item.style.left = x + "px";
+            item.style.top = y + "px";
+          }
+        });
+      };
     </script>
   </body>
 </html>

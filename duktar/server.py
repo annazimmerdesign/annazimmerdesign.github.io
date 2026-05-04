@@ -25,7 +25,7 @@ _save_timer = None
 _save_lock = threading.Lock()
 
 bent_images = {}
-MAX_BEND_PASSES = 10
+MAX_BEND_PASSES = 20
 bend_pass_counts = {}
 IMAGE_OFFSETS = {'image1.jpg': 0, 'image2.jpg': 200, 'image3.jpg': 400, 'image4.jpg': 100, 'image5.jpg': 300}
 
@@ -121,7 +121,6 @@ def apply_bend_pass(filename, intensity_override=None):
     if filename not in bent_images: return
     passes = bend_pass_counts.get(filename, 0)
     if passes >= MAX_BEND_PASSES: return
-    # ramp from 0.25 (immediately visible) to 0.95 (severe) across 10 passes
     intensity = intensity_override if intensity_override else (0.25 + (passes / MAX_BEND_PASSES) * 0.70)
     seed = passes * 7919 + hash(filename) % 100000
     bent_images[filename] = databend(bent_images[filename], intensity, seed)
@@ -163,7 +162,7 @@ def maybe_bend_images():
         passes = bend_pass_counts.get(filename, 0)
         if passes >= MAX_BEND_PASSES: continue
         offset = IMAGE_OFFSETS.get(filename, 500)
-        expected = min(MAX_BEND_PASSES, max(0, (interactions-offset)//1000))
+        expected = min(MAX_BEND_PASSES, max(0, (interactions - offset) // 500))
         if passes >= expected: continue
         apply_bend_pass(filename)
 
@@ -297,7 +296,7 @@ def on_register_image(data):
 
 @socketio.on('image_click')
 def on_image_click(data):
-    """Each click or mouseenter triggers one full bend pass, visible to all visitors."""
+    """Each click or mouseenter triggers one bend pass, permanent for all visitors."""
     filename = os.path.basename(data.get('filename',''))
     if not filename: return
     if filename not in bent_images: register_image(filename)

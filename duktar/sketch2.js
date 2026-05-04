@@ -68,6 +68,10 @@ function initSocket() {
     updatePresence();
   });
 
+  socket.on('node_moved', (data) => {
+    if (window.applyNodeMove) window.applyNodeMove(data.nodeId, data.x, data.y);
+  });
+
   socket.on('remote_cursor', (data) => {
     if (window.renderRemoteCursor) renderRemoteCursor(data.id, data.nx, data.ny);
   });
@@ -117,8 +121,7 @@ function fetchBentImages() {
   });
 }
 
-// ---- Canvas interaction: click or mouseenter triggers a bend pass ----
-// mouseenter fires once per boundary crossing — not on every pixel of movement.
+// ---- Canvas interactions: mouseenter + click trigger a bend pass ----
 
 function attachCanvasInteractions() {
   document.querySelectorAll('.distort-canvas').forEach(canvas => {
@@ -227,8 +230,8 @@ function initCanvases() {
     };
 
     img.src = src;
-    attachCanvasInteractions();
   });
+  attachCanvasInteractions();
 }
 
 function registerImagesWithServer() {

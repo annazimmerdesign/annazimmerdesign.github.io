@@ -113,12 +113,12 @@
     if (!remoteCursorDots[socketId]) {
       const dot = document.createElement('div');
       dot.style.cssText = `
-        position: fixed; width: 24px; height: 24px;
-        background: radial-gradient(circle, rgba(0,0,0,0.38) 0%, rgba(0,0,0,0.12) 55%, transparent 50%);
+        position: fixed; width: 48px; height: 48px;
+        background: radial-gradient(circle, rgba(0,0,0,0.38) 0%, rgba(0,0,0,0.12) 24%, transparent 24%);
         border-radius: 50%;
         pointer-events: none; z-index: 9998;
         transform: translate(-50%, -50%);
-        filter: blur(2px);
+        filter: blur(4px);
         transition: left 0.09s linear, top 0.09s linear;
       `;
       document.body.appendChild(dot);

@@ -38,6 +38,8 @@ function initSocket() {
     socketConnected = true;
     console.log('Socket connected:', socket.id);
     registerImagesWithServer();
+    // fetch bent state after registration has had time to process
+    setTimeout(fetchBentImages, 1200);
   });
 
   socket.on('disconnect', () => {
@@ -81,21 +83,43 @@ function initSocket() {
   });
 
   socket.on('image_updated', (data) => {
-    // server emits {filename, passes, t} — re-fetch bent image via HTTP
-    const bentUrl = `${SOCKET_SERVER_URL}/image/${data.filename}?t=${data.t || Date.now()}`;
-    document.querySelectorAll('.distort-canvas').forEach(canvas => {
-      const src = canvas.dataset.src || canvas.dataset.originalSrc || '';
-      if (src.split('/').pop() === data.filename.split('/').pop()) {
-        const img = new Image();
-        img.onload = () => {
-          canvas._bentSrc = bentUrl;
-          const ctx = canvas.getContext('2d');
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        };
-        img.src = bentUrl;
-      }
-    });
+    // server emits {filename, passes, t} — re-fetch the bent image via HTTP
+    refreshBentCanvas(data.filename, data.t || Date.now());
+  });
+}
+
+// ---- Bent image fetching ----
+
+// Re-fetch a single bent image from the server and repaint matching canvases.
+function refreshBentCanvas(filename, cacheBuster) {
+  const bentUrl = `${SOCKET_SERVER_URL}/image/${filename}?t=${cacheBuster || Date.now()}`;
+  document.querySelectorAll('.distort-canvas').forEach(canvas => {
+    const src = canvas.dataset.src || canvas.dataset.originalSrc || '';
+    if (!src) return;
+    if (src.split('/').pop() !== filename) return;
+    const img = new Image();
+    img.onload = () => {
+      canvas._bentSrc = bentUrl;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    };
+    img.onerror = () => console.warn('Could not fetch bent image:', bentUrl);
+    img.src = bentUrl;
+  });
+}
+
+// Fetch current bent state for ALL registered canvases.
+// Called after registration so the server has had time to load image bytes.
+function fetchBentImages() {
+  const seen = new Set();
+  document.querySelectorAll('.distort-canvas').forEach(canvas => {
+    const src = canvas.dataset.src || canvas.dataset.originalSrc || '';
+    if (!src) return;
+    const filename = src.split('/').pop();
+    if (!filename || seen.has(filename)) return;
+    seen.add(filename);
+    refreshBentCanvas(filename, Date.now());
   });
 }
 
@@ -175,17 +199,7 @@ function initCanvases() {
       canvas._originalSrc = src;
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-      // fetch current bent state from server via HTTP
-      const filename = src.split('/').pop();
-      const bentUrl = `https://dukhtar-server.onrender.com/image/${filename}?t=${Date.now()}`;
-      const bentImg = new Image();
-      bentImg.onload = () => {
-        canvas._bentSrc = bentUrl;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(bentImg, 0, 0, canvas.width, canvas.height);
-      };
-      bentImg.onerror = () => {}; // silently fail if not bent yet
-      bentImg.src = bentUrl;
+      // bent state is fetched separately via fetchBentImages() after registration
     };
 
     img.onerror = () => {

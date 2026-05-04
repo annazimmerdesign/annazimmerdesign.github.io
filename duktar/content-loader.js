@@ -92,6 +92,8 @@ document.dispatchEvent(new Event('contentLoaded'));
   setTimeout(() => {
     if (window.wrapAllParagraphs) window.wrapAllParagraphs();
     if (typeof registerImagesWithServer === 'function') registerImagesWithServer();
+    // fetch bent state now that data-src is set on the main canvas
+    if (typeof fetchBentImages === 'function') fetchBentImages();
   }, 600);
 }
 

@@ -113,18 +113,19 @@
     if (!remoteCursorDots[socketId]) {
       const dot = document.createElement('div');
       dot.style.cssText = `
-        position: fixed; width: 22px; height: 22px;
+        position: fixed; width: 18px; height: 18px;
+        background: radial-gradient(circle, rgba(0,0,0,0.38) 0%, rgba(0,0,0,0.12) 55%, transparent 75%);
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(10,6,3,0.5) 0%, rgba(10,6,3,0.2) 45%, transparent 100%);
-        filter: blur(2.5px);
         pointer-events: none; z-index: 9998;
-        transition: left 0.08s linear, top 0.08s linear;
+        transform: translate(-50%, -50%);
+        filter: blur(1.5px);
+        transition: left 0.09s linear, top 0.09s linear;
       `;
       document.body.appendChild(dot);
       remoteCursorDots[socketId] = dot;
     }
-    remoteCursorDots[socketId].style.left = (x - 11) + 'px';
-    remoteCursorDots[socketId].style.top  = (y - 11) + 'px';
+    remoteCursorDots[socketId].style.left = x + 'px';
+    remoteCursorDots[socketId].style.top  = y + 'px';
   };
 
   window.removeRemoteCursor = function(socketId) {

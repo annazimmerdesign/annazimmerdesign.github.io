@@ -211,5 +211,68 @@
     <script src="distort-text.js"></script>
     <script src="sketch2.js"></script>
     <script src="cursor-displace.js"></script>
+
+    <style>
+      #breakdown-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 88888;
+        pointer-events: none;
+        overflow: hidden;
+      }
+      #breakdown-title {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-family: "Anthony", "Courier New", monospace;
+        font-size: 2vw;
+        color: #e8dcc8;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        white-space: nowrap;
+        opacity: 0;
+        line-height: 1;
+        mix-blend-mode: screen;
+        transition:
+          font-size 4s ease-in,
+          opacity 1s ease-in,
+          top 6s ease-in;
+      }
+    </style>
+
+    <div id="breakdown-overlay">
+      <div id="breakdown-title">Dukhtar, Dispossessed</div>
+    </div>
+
+    <script>
+      let _breakdownActive = false;
+
+      function checkBreakdown() {
+        if (typeof damageMap === "undefined") return;
+        const avg = damageMap.reduce((a, b) => a + b, 0) / damageMap.length;
+        if (avg < 0.4) return;
+        if (!_breakdownActive) {
+          _breakdownActive = true;
+          document.getElementById("breakdown-overlay").style.display = "block";
+          requestAnimationFrame(() => {
+            document.getElementById("breakdown-title").style.opacity = "0.15";
+          });
+        }
+        const phase = Math.min(1, (avg - 0.4) / 0.6);
+        const title = document.getElementById("breakdown-title");
+        title.style.fontSize = 2 + phase * 48 + "vw";
+        title.style.top = 50 - phase * 35 + "%";
+        title.style.opacity = 0.15 + phase * 0.85;
+      }
+
+      document.addEventListener("contentLoaded", () => {
+        setInterval(checkBreakdown, 2000);
+      });
+    </script>
   </body>
 </html>

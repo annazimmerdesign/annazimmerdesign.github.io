@@ -8,8 +8,8 @@ async function loadContent() {
   // site notice
   const notice = document.querySelector('.site-notice p');
   if (notice && c.notice) {
-    notice.innerHTML = `<strong>${c.notice.date}</strong> — ${c.notice.text}`;
-  }
+// replace this:
+notice.innerHTML = `<strong>${c.notice.date}</strong> — ${c.notice.text}`;  }
 
   // randomize main image
 if (c.images && c.images.length) {

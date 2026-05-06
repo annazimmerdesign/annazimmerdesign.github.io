@@ -38,7 +38,6 @@
     </div>
 
     <script>
-      // only show landing on first visit — persists across reloads
       (function () {
         if (localStorage.getItem("dukhtar_visited")) {
           document.getElementById("landing-overlay").style.display = "none";
@@ -52,6 +51,7 @@
         setTimeout(() => (overlay.style.display = "none"), 600);
       }
     </script>
+
     <div id="page-wrapper">
       <header id="site-header">
         <div id="site-title" onmouseover="cycleDukhtar()">
@@ -81,5 +81,111 @@
       </header>
 
       <div id="columns">
+        <!-- LEFT COLUMN: navigation + archive meta -->
+        <div class="col" id="col-left">
+          <div class="nav-section">
+            <div class="nav-header">Collections</div>
+            <ul class="nav-list">
+              <li>
+                <a href="turkestan.html" class="nav-featured"
+                  >Turkestan Album</a
+                >
+              </li>
+              <li>
+                <a href="prokudin.html" class="nav-featured">Prokudin-Gorsky</a>
+              </li>
+              <li>
+                <a href="postcards.html" class="nav-featured"
+                  >Soviet Postcards</a
+                >
+              </li>
+              <li><a href="pretimurid.html">Pre-Timurid / Pre-Islamic</a></li>
+              <li><a href="soviet.html">Soviet-Era Regional</a></li>
+            </ul>
+          </div>
+          <div class="nav-section">
+            <div class="nav-header">Subject File</div>
+            <ul class="nav-list">
+              <li>
+                <a href="dossier-subject.html" class="nav-featured"
+                  >Subject ???</a
+                >
+              </li>
+              <li><a href="dossier-medical.html">Medical Files</a></li>
+              <li><a href="dossier.html">Legal Files</a></li>
+            </ul>
+          </div>
+          <div class="nav-section">
+            <div class="nav-header">Archive</div>
+            <ul class="nav-list">
+              <li><a href="about.html">About</a></li>
+            </ul>
+          </div>
+          <div class="meta-block">
+            <div class="nav-header">Archive Metadata</div>
+            <div id="meta-container">
+              <!-- populated by content-loader.js -->
+            </div>
+          </div>
+        </div>
+
+        <!-- CENTER COLUMN: main image + archive entries -->
+        <div class="col" id="col-center">
+          <div class="site-notice">
+            <p id="site-notice-text"><!-- populated by content-loader.js --></p>
+          </div>
+          <div class="doc-image-block">
+            <canvas
+              class="distort-canvas"
+              id="main-canvas"
+              data-src="images/image3.jpg"
+              width="560"
+              height="420"
+            ></canvas>
+            <div class="doc-caption" id="main-caption">—</div>
+          </div>
+          <div class="section-header">Archive Entries</div>
+          <div id="entries-container">
+            <!-- populated by content-loader.js -->
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN: related records + archive log -->
+        <div class="col" id="col-right">
+          <div class="section-header">Related Records</div>
+          <div class="inner-panel">
+            <div class="inner-panel-header">Document Index</div>
+            <div id="related-container">
+              <!-- populated by content-loader.js -->
+            </div>
+          </div>
+          <div class="section-header" style="margin-top: 0">Archive Log</div>
+          <div id="logs-container">
+            <!-- populated by content-loader.js -->
+          </div>
+        </div>
+      </div>
+      <!-- #columns -->
+
+      <footer id="site-footer">
+        <span class="footer-label">
+          Interactions: <span id="interaction-count">0</span>
+        </span>
+        <span class="footer-label">
+          Readers Present: <span id="presence-count">—</span>
+        </span>
+        <button id="reset-btn" onclick="resetArchive()">[ reset ]</button>
+        <span class="footer-label"
+          >duktar, dispossessed — copyright Anna M. Zimmer 2026</span
+        >
+      </footer>
+    </div>
+    <!-- #page-wrapper -->
+
+    <script src="socket.io.min.js"></script>
+    <script src="distort-text.js"></script>
+    <script src="sketch2.js"></script>
+    <script src="cursor-displace.js"></script>
+    <script src="content-loader.js"></script>
   </body>
 </html>

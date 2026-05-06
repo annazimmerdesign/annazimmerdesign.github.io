@@ -101,123 +101,39 @@
 
   wordRaf = requestAnimationFrame(tickWords);
 
-  // ---- Persistent cursor trail canvas ----
-  // Page-relative (absolute), so trails are glued to the document not the viewport.
-  // Coordinates offset by scrollY so trails stay anchored when scrolling.
+  // ---- Remote cursors ----
 
-  const trailCanvas = document.createElement('canvas');
-  trailCanvas.style.cssText = `
-    position: absolute; top: 0; left: 0;
-    width: 100%; height: 100%;
-    pointer-events: none; z-index: 9997;
-    mix-blend-mode: screen;
-  `;
-  document.body.style.position = document.body.style.position || 'relative';
-  document.body.appendChild(trailCanvas);
-
-  function resizeTrailCanvas() {
-    const tmp = document.createElement('canvas');
-    tmp.width = trailCanvas.width;
-    tmp.height = trailCanvas.height;
-    tmp.getContext('2d').drawImage(trailCanvas, 0, 0);
-    trailCanvas.width = document.documentElement.scrollWidth;
-    trailCanvas.height = document.documentElement.scrollHeight;
-    trailCanvas.getContext('2d').drawImage(tmp, 0, 0);
-  }
-  resizeTrailCanvas();
-  window.addEventListener('resize', resizeTrailCanvas);
-  setTimeout(resizeTrailCanvas, 1500);
-
-  const trailCtx = trailCanvas.getContext('2d');
-  const prevTrailPos = {};
-
-  function drawTrail(id, x, y) {
-    const prev = prevTrailPos[id];
-    if (prev) {
-      trailCtx.beginPath();
-      trailCtx.moveTo(prev.x, prev.y);
-      trailCtx.lineTo(x, y);
-      trailCtx.strokeStyle = 'rgba(232, 220, 200, 0.008)';
-      trailCtx.lineWidth = 12;
-      trailCtx.lineCap = 'round';
-      trailCtx.shadowColor = 'rgba(232, 220, 200, 0.006)';
-      trailCtx.shadowBlur = 18;
-      trailCtx.stroke();
-      trailCtx.shadowBlur = 0;
-    }
-    prevTrailPos[id] = { x, y };
-  }
-
-  // local trail — offset by scrollY so it's page-relative
-  document.addEventListener('mousemove', e => {
-    drawTrail('_local', e.clientX, e.clientY + window.scrollY);
-  });
-
-  // ---- Supabase trail persistence ----
-
-  const _SUPA_URL = 'https://dkszxyudruaqtlhininm.supabase.co';
-  const _SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrc3p4eXVkcnVhcXRsaGluaW5tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzODcwNzEsImV4cCI6MjA5MDk2MzA3MX0.mjtPxo0yvpPedV0vTlJ4qIZ5vOYHTnkGlfSR27yx4-U';
-  const _SUPA_HEADERS = {
-    'apikey': _SUPA_KEY,
-    'Authorization': `Bearer ${_SUPA_KEY}`,
-    'Content-Type': 'application/json',
-    'Prefer': 'return=minimal'
-  };
-  const _TRAIL_KEY = `trail_${window.location.pathname.split('/').pop() || 'index'}`;
-
-  let _trailSaveTimer = null;
-  function scheduleTrailSave() {
-    if (_trailSaveTimer) return;
-    _trailSaveTimer = setTimeout(async () => {
-      _trailSaveTimer = null;
-      const small = document.createElement('canvas');
-      small.width = 512; small.height = 512;
-      small.getContext('2d').drawImage(trailCanvas, 0, 0, 512, 512);
-      const b64 = small.toDataURL('image/png');
-      try {
-        const check = await fetch(`${_SUPA_URL}/rest/v1/site_state?key=eq.${_TRAIL_KEY}&select=id`, { headers: _SUPA_HEADERS });
-        const existing = await check.json();
-        const payload = JSON.stringify({ key: _TRAIL_KEY, value: b64 });
-        if (existing.length) {
-          await fetch(`${_SUPA_URL}/rest/v1/site_state?key=eq.${_TRAIL_KEY}`, { method: 'PATCH', headers: _SUPA_HEADERS, body: payload });
-        } else {
-          await fetch(`${_SUPA_URL}/rest/v1/site_state`, { method: 'POST', headers: _SUPA_HEADERS, body: payload });
-        }
-      } catch(e) { console.warn('Trail save failed:', e); }
-    }, 8000);
-  }
-
-  async function loadTrail() {
-    try {
-      const res = await fetch(`${_SUPA_URL}/rest/v1/site_state?key=eq.${_TRAIL_KEY}&select=value`, { headers: _SUPA_HEADERS });
-      const rows = await res.json();
-      if (rows.length && rows[0].value) {
-        const img = new Image();
-        img.onload = () => trailCtx.drawImage(img, 0, 0, trailCanvas.width, trailCanvas.height);
-        img.src = rows[0].value;
-      }
-    } catch(e) { console.warn('Trail load failed:', e); }
-  }
-  loadTrail();
-
-  let _trailMoveCount = 0;
-  document.addEventListener('mousemove', () => {
-    if (++_trailMoveCount % 20 === 0) scheduleTrailSave();
-  });
-
-  // ---- Remote cursors — page-relative trail, no dot ----
+  const remoteCursorDots = {};
 
   window.renderRemoteCursor = function(socketId, normX, normY) {
     const x = normX * window.innerWidth;
-    const y = normY * window.innerHeight + window.scrollY;
-    remoteCursorPositions[socketId] = { x, y: y - window.scrollY };
-    drawTrail(socketId, x, y);
-    scheduleTrailSave();
+    const y = normY * window.innerHeight;
+    remoteCursorPositions[socketId] = { x, y };
+
+    if (!remoteCursorDots[socketId]) {
+      const dot = document.createElement('div');
+      dot.style.cssText = `
+        position: fixed; width: 96px; height: 96px;
+        background: radial-gradient(circle, rgba(0,0,0,0.38) 0%, rgba(0,0,0,0.12) 12%, transparent 12%);
+        border-radius: 50%;
+        pointer-events: none; z-index: 9998;
+        transform: translate(-50%, -50%);
+        filter: blur(8px);
+        transition: left 0.09s linear, top 0.09s linear;
+      `;
+      document.body.appendChild(dot);
+      remoteCursorDots[socketId] = dot;
+    }
+    remoteCursorDots[socketId].style.left = x + 'px';
+    remoteCursorDots[socketId].style.top  = y + 'px';
   };
 
   window.removeRemoteCursor = function(socketId) {
     delete remoteCursorPositions[socketId];
-    delete prevTrailPos[socketId];
+    if (remoteCursorDots[socketId]) {
+      remoteCursorDots[socketId].remove();
+      delete remoteCursorDots[socketId];
+    }
   };
 
 })();

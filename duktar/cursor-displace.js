@@ -102,15 +102,15 @@
   wordRaf = requestAnimationFrame(tickWords);
 
   // ---- Persistent cursor trail canvas ----
-  // Faint traces from all cursors accumulate permanently on a fixed canvas.
-  // Saved per-page to Supabase site_state, restored on every visit.
+  // Light warm traces, ~1% opacity per stroke, accumulate permanently.
+  // screen blend mode so trails glow on dark backgrounds.
 
   const trailCanvas = document.createElement('canvas');
   trailCanvas.style.cssText = `
     position: fixed; top: 0; left: 0;
     width: 100vw; height: 100vh;
     pointer-events: none; z-index: 9997;
-    mix-blend-mode: multiply;
+    mix-blend-mode: screen;
   `;
   document.body.appendChild(trailCanvas);
 
@@ -135,15 +135,17 @@
       trailCtx.beginPath();
       trailCtx.moveTo(prev.x, prev.y);
       trailCtx.lineTo(x, y);
-      trailCtx.strokeStyle = 'rgba(0, 0, 0, 0.018)';
-      trailCtx.lineWidth = 6;
+      trailCtx.strokeStyle = 'rgba(232, 220, 200, 0.008)';
+      trailCtx.lineWidth = 12;
       trailCtx.lineCap = 'round';
+      trailCtx.shadowColor = 'rgba(232, 220, 200, 0.006)';
+      trailCtx.shadowBlur = 18;
       trailCtx.stroke();
+      trailCtx.shadowBlur = 0;
     }
     prevTrailPos[id] = { x, y };
   }
 
-  // local cursor draws trail too
   document.addEventListener('mousemove', e => {
     drawTrail('_local', e.clientX, e.clientY);
   });
@@ -165,7 +167,6 @@
     if (_trailSaveTimer) return;
     _trailSaveTimer = setTimeout(async () => {
       _trailSaveTimer = null;
-      // downsample to 512x512 to keep payload small
       const small = document.createElement('canvas');
       small.width = 512; small.height = 512;
       small.getContext('2d').drawImage(trailCanvas, 0, 0, 512, 512);
@@ -201,7 +202,7 @@
     if (++_trailMoveCount % 20 === 0) scheduleTrailSave();
   });
 
-  // ---- Remote cursors — trail only, no dot ----
+  // ---- Remote cursors — trail only, no visible dot ----
 
   window.renderRemoteCursor = function(socketId, normX, normY) {
     const x = normX * window.innerWidth;

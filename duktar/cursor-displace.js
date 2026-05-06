@@ -102,16 +102,17 @@
   wordRaf = requestAnimationFrame(tickWords);
 
   // ---- Persistent cursor trail canvas ----
-  // Light warm traces, ~1% opacity per stroke, accumulate permanently.
-  // screen blend mode so trails glow on dark backgrounds.
+  // Page-relative (absolute), so trails are glued to the document not the viewport.
+  // Coordinates offset by scrollY so trails stay anchored when scrolling.
 
   const trailCanvas = document.createElement('canvas');
   trailCanvas.style.cssText = `
-    position: fixed; top: 0; left: 0;
-    width: 100vw; height: 100vh;
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%;
     pointer-events: none; z-index: 9997;
     mix-blend-mode: screen;
   `;
+  document.body.style.position = document.body.style.position || 'relative';
   document.body.appendChild(trailCanvas);
 
   function resizeTrailCanvas() {
@@ -119,12 +120,13 @@
     tmp.width = trailCanvas.width;
     tmp.height = trailCanvas.height;
     tmp.getContext('2d').drawImage(trailCanvas, 0, 0);
-    trailCanvas.width = window.innerWidth;
-    trailCanvas.height = window.innerHeight;
+    trailCanvas.width = document.documentElement.scrollWidth;
+    trailCanvas.height = document.documentElement.scrollHeight;
     trailCanvas.getContext('2d').drawImage(tmp, 0, 0);
   }
   resizeTrailCanvas();
   window.addEventListener('resize', resizeTrailCanvas);
+  setTimeout(resizeTrailCanvas, 1500);
 
   const trailCtx = trailCanvas.getContext('2d');
   const prevTrailPos = {};
@@ -146,8 +148,9 @@
     prevTrailPos[id] = { x, y };
   }
 
+  // local trail — offset by scrollY so it's page-relative
   document.addEventListener('mousemove', e => {
-    drawTrail('_local', e.clientX, e.clientY);
+    drawTrail('_local', e.clientX, e.clientY + window.scrollY);
   });
 
   // ---- Supabase trail persistence ----
@@ -202,12 +205,12 @@
     if (++_trailMoveCount % 20 === 0) scheduleTrailSave();
   });
 
-  // ---- Remote cursors — trail only, no visible dot ----
+  // ---- Remote cursors — page-relative trail, no dot ----
 
   window.renderRemoteCursor = function(socketId, normX, normY) {
     const x = normX * window.innerWidth;
-    const y = normY * window.innerHeight;
-    remoteCursorPositions[socketId] = { x, y };
+    const y = normY * window.innerHeight + window.scrollY;
+    remoteCursorPositions[socketId] = { x, y: y - window.scrollY };
     drawTrail(socketId, x, y);
     scheduleTrailSave();
   };

@@ -605,6 +605,26 @@
         ></canvas>
         <div class="node-label">Subject Document 15</div>
       </div>
+      <!-- Row 5 — subject16 -->
+      <div
+        class="doc-node"
+        id="node-n16"
+        style="
+          left: 560px;
+          top: 1570px;
+          width: 450px;
+          transform: rotate(-0.4deg);
+        "
+      >
+        <div class="node-id">DOC-016</div>
+        <canvas
+          class="distort-canvas"
+          data-src="images/subject16.jpg"
+          width="540"
+          height="404"
+        ></canvas>
+        <div class="node-label">Subject Document 16</div>
+      </div>
     </div>
 
     <footer id="dossier-footer">
@@ -616,6 +636,7 @@
     <script src="socket.io.min.js"></script>
     <script src="distort-text.js"></script>
     <script src="sketch2.js"></script>
+    <script src="cursor-displace.js"></script>
     <script>
       function drawConnections() {
         const field = document.getElementById("constellation-field");

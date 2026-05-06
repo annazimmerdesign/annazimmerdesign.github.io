@@ -70,7 +70,7 @@
     },
     {
       "id": "REF-007",
-      "label": "Passport Application — Denied"
+      "label": "VISA Application — Approved"
     },
     {
       "id": "REF-008",
@@ -78,61 +78,61 @@
     },
     {
       "id": "REF-009",
-      "label": "Citizenship Certificate, 2003"
+      "label": "Citizenship Certificate, 2005"
     },
     {
       "id": "REF-010",
-      "label": "Birth Record — St. Petersburg, 1997"
+      "label": "Birth Record — St. Petersburg, 2003"
     }
   ],
   "logs": [
     {
-      "date": "2026.05.06",
+      "date": "2027.05.06",
       "tag": "researcher note",
       "tagClass": "tag-researcher",
       "text": "Archive entries 001–006 are texts generated via Markov chain from OCR-cleaned 19th-century Russian imperial survey literature. They are not original documents. They are produced by the grammar of the imperial archive, trained on its own corpus. The distinction may not hold."
     },
     {
-      "date": "2026.04.12",
+      "date": "2027.04.12",
       "tag": "researcher note",
       "tagClass": "tag-researcher",
       "text": "The overwhelming amount of vaccination records yet underwhelming ones regarding birth or provenance are disappointing but expected. The archive holds what the state needed to record. What the state did not need is not here."
     },
     {
-      "date": "2026.03.28",
+      "date": "2027.03.28",
       "tag": "transcription",
       "tagClass": "tag-transcription",
       "text": "Partial transcription, Medical Assessment Form 12-B: \"Subject presents in good health. Age estimated [illegible]. Name of guardian recorded as — [illegible]. Origin: [redacted].\""
     },
     {
-      "date": "2026.03.15",
+      "date": "2027.03.15",
       "tag": "researcher note",
       "tagClass": "tag-researcher",
-      "text": "Cannot locate original birth record. Cross-reference with regional civil registry yields three possible matches, none conclusive. Soviet-era reorganization of Dushanbe records complicates search. The archival absence here is its own projection — of a future still waiting to be imagined."
+      "text": "Cannot locate original birth record. Cross-reference with regional civil registry yields three possible matches, none conclusive. Soviet-era reorganization of Dushanbe records complicates search. The archival absence here is its own projection...of a future still waiting to be imagined."
     },
     {
-      "date": "2026.02.20",
+      "date": "2027.02.20",
       "tag": "maintenance",
       "tagClass": "",
-      "text": "Turkestan Album holdings digitized from LOC scans. Orientalist staging of subjects intact. The colonial imaginaire is not only materialized and justified here — it is the only future imaginable. No restoration performed. Degradation is the point."
+      "text": "Turkestan Album holdings digitized from LOC scans. Orientalist staging of subjects consistent. The colonial imaginaire is not only materialized and justified here...it is the only future imaginable."
     },
     {
-      "date": "2026.01.09",
+      "date": "2027.01.09",
       "tag": "transcription",
       "tagClass": "tag-transcription",
-      "text": "Vaccination record, undated: \"Child received — [illegible] — administered by — [stamp, illegible]. Weight recorded: [illegible]. Next appointment: not recorded.\""
+      "text": "Vaccination records recieved and digitized. Awaiting further medical transcriptions. \""
     },
     {
-      "date": "2025.11.14",
+      "date": "2026.11.14",
       "tag": "researcher note",
       "tagClass": "tag-researcher",
-      "text": "The archive holds what the archive was given. What was not given is not absent — it is elsewhere, or it is gone. This distinction matters and cannot be resolved from here."
+      "text": "The archive holds what the archive was given. What was not given is not absent — it is elsewhere, or it is gone.  This is a silence produced."
     },
     {
-      "date": "2025.09.03",
+      "date": "2026.09.03",
       "tag": "redacted",
       "tagClass": "tag-redacted",
-      "text": "[Entry removed. Reason: ████████████. Contact custodian for access request form.]"
+      "text": "[Entry removed. Reason: ████████████. Contact archon for access request form.]"
     }
   ],
   "notice": {
@@ -140,13 +140,12 @@
     "text": "Entries 001–006 are Markov-generated from 19th-century imperial Russian survey literature. This archive deteriorates with use and cannot be returned to a prior state."
   },
   "meta": {
-    "holdings": "247 items",
-    "digitized": "38 items",
+    "holdings": "54 items",
+    "digitized": "48 items",
     "restricted": "0 items",
-    "missing": "Unknown",
-    "origin": "Dushanbe, TJK / St. Petersburg, RU",
-    "transferred": "1997–2003",
-    "custodian": "A.M. Zimmer",
-    "chain": "Incomplete"
+    "status": "Decay - Progressive",
+    "origin": "There is no original origin",
+    "transferred": "Feb. – May 2026",
+    "archon": "A. M. Zimmer"
   }
 }

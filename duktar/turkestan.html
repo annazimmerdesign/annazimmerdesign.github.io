@@ -124,14 +124,24 @@
         text-decoration: underline;
       }
     </style>
-  </head>
-  <body style="background: #1c1208; margin: 0; padding: 0">
+    <link rel="stylesheet" href="mobile-block.css" />
+</head>
+  <body>
+  <div id="mobile-block">
+    <div id="mobile-block-inner">
+      <div id="mobile-block-title">This archive<br>requires a<br>different device.</div>
+      <p id="mobile-block-text">
+        <em>Dukhtar, Dispossessed</em> is designed for desktop or laptop.
+        The conditions of encounter are part of the work.
+        Please return on a larger screen.
+      </p>
+    </div>
+  </div>
+<div style="display:contents" style="background: #1c1208; margin: 0; padding: 0">
     <div id="gallery-wrapper">
       <header id="gallery-header">
         <div id="gallery-title">Turkestan Album</div>
-        <div id="gallery-subtitle">
-          Turkestan Album, 1871–72 — Russian Imperial Geographical Society
-        </div>
+        <div id="gallery-subtitle">Turkestan Album, 1871–72 — Russian Imperial Geographical Society</div>
         <div id="gallery-meta">
           <span
             ><a href="duktar.html" id="back-link">← Return to Archive</a></span
@@ -158,46 +168,11 @@
       // Gallery-specific layout — positions seeded, not random each load
       // TODO: replace with actual Turkestan Album images
       const PHOTOS = [
-        {
-          src: "images/turkestan1.jpg",
-          caption: "Turkestan Album, 1871–72 — [untitled]",
-          w: 380,
-          x: 40,
-          y: 50,
-          rot: -0.8,
-        },
-        {
-          src: "images/turkestan2.jpg",
-          caption: "Turkestan Album, 1871–72 — [untitled]",
-          w: 440,
-          x: 320,
-          y: 90,
-          rot: 0.6,
-        },
-        {
-          src: "images/turkestan3.jpg",
-          caption: "Turkestan Album, 1871–72 — [untitled]",
-          w: 360,
-          x: 720,
-          y: 30,
-          rot: -0.4,
-        },
-        {
-          src: "images/turkestan4.jpg",
-          caption: "Turkestan Album, 1871–72 — [untitled]",
-          w: 400,
-          x: 80,
-          y: 420,
-          rot: 0.9,
-        },
-        {
-          src: "images/turkestan5.jpg",
-          caption: "Turkestan Album, 1871–72 — [untitled]",
-          w: 420,
-          x: 460,
-          y: 380,
-          rot: -0.5,
-        },
+        { src: "images/turkestan1.jpg", caption: "Turkestan Album, 1871–72 — [untitled]", w: 380, x: 40, y: 50, rot: -0.8 },
+        { src: "images/turkestan2.jpg", caption: "Turkestan Album, 1871–72 — [untitled]", w: 440, x: 320, y: 90, rot: 0.6 },
+        { src: "images/turkestan3.jpg", caption: "Turkestan Album, 1871–72 — [untitled]", w: 360, x: 720, y: 30, rot: -0.4 },
+        { src: "images/turkestan4.jpg", caption: "Turkestan Album, 1871–72 — [untitled]", w: 400, x: 80, y: 420, rot: 0.9 },
+        { src: "images/turkestan5.jpg", caption: "Turkestan Album, 1871–72 — [untitled]", w: 420, x: 460, y: 380, rot: -0.5 },
       ];
 
       document.addEventListener("DOMContentLoaded", () => {
@@ -257,9 +232,7 @@
           item.addEventListener("mousedown", (e) => {
             dragging = true;
             hasDragged = false;
-            document
-              .querySelectorAll(".photo-item")
-              .forEach((el) => (el.style.zIndex = "2"));
+            document.querySelectorAll(".photo-item").forEach((el) => el.style.zIndex = "2");
             item.style.zIndex = "50";
             const fieldRect = field.getBoundingClientRect();
             dragOffX = e.clientX - fieldRect.left - item.offsetLeft;
@@ -290,7 +263,8 @@
               typeof socket !== "undefined" &&
               socketConnected
             ) {
-              const nodeId = "turkestan_" + photo.src.split("/").pop();
+              const nodeId =
+                "turkestan_" + photo.src.split("/").pop();
               socket.emit("node_move", {
                 nodeId,
                 x: parseInt(item.style.left),
@@ -325,11 +299,7 @@
         const filename = nodeId.replace("turkestan_", "");
         document.querySelectorAll(".photo-item").forEach((item) => {
           const canvas = item.querySelector(".distort-canvas");
-          if (
-            canvas &&
-            canvas.dataset.src &&
-            canvas.dataset.src.split("/").pop() === filename
-          ) {
+          if (canvas && canvas.dataset.src && canvas.dataset.src.split("/").pop() === filename) {
             item.style.left = x + "px";
             item.style.top = y + "px";
           }

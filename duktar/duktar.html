@@ -4,17 +4,31 @@
     <meta charset="UTF-8" />
     <title>duktar, dispossessed</title>
     <link rel="stylesheet" href="ds.css" />
+    <link rel="stylesheet" href="mobile-block.css" />
   </head>
   <body>
+    <div id="mobile-block">
+      <div id="mobile-block-inner">
+        <div id="mobile-block-title">
+          This archive<br />requires a<br />different device.
+        </div>
+        <p id="mobile-block-text">
+          <em>Dukhtar, Dispossessed</em> is designed for desktop or laptop. The
+          conditions of encounter are part of the work. Please return on a
+          larger screen.
+        </p>
+      </div>
+    </div>
+
     <div id="landing-overlay">
       <div id="landing-popup">
         <div id="landing-title">Welcome.</div>
         <div id="landing-text">
           You are about to enter <em>Dukhtar, Dispossessed</em>, a personal
           digital archive. Your presence here will directly affect this
-          archive's appearance, structure, and content---both for you and for
+          archive's appearance, structure, and content — both for you and for
           others accessing it, simultaneously or in the future, temporarily and
-          permanently. Attempts to extract will prove difficult.
+          permanently.
         </div>
         <button id="landing-accept" onclick="dismissLanding()">
           [ enter archive ]
@@ -57,9 +71,7 @@
             _titleIdx = (_titleIdx + 1) % _titles.length;
           }
         </script>
-        <div id="site-subtitle">
-          what you look for, you will lose; what you extract, is a wound
-        </div>
+        <div id="site-subtitle">Speculative Counter-Archive</div>
         <div id="header-meta">
           <span class="header-label"
             >Last Modified: <span id="mod-date">—</span></span
@@ -100,12 +112,12 @@
             <div class="nav-header">Inaccessible</div>
             <ul class="nav-list">
               <li>
-                <a href="pretimurid.html" style="color: #5a4a3a"
+                <a href="error-pretimurid.html" style="color: #5a4a3a"
                   >Pre-Timurid / Pre-Islamic Archaeological</a
                 >
               </li>
               <li>
-                <a href="soviet.html" style="color: #5a4a3a"
+                <a href="error-soviet.html" style="color: #5a4a3a"
                   >Soviet-Era Central Asian Origin Artifacts</a
                 >
               </li>
@@ -135,6 +147,12 @@
 
         <!-- CENTER COL — documents + notices -->
         <div class="col" id="col-center">
+          <div class="section-header">Primary Documents</div>
+
+          <div class="site-notice">
+            <p>—</p>
+          </div>
+
           <div class="doc-image-block">
             <canvas
               class="distort-canvas"

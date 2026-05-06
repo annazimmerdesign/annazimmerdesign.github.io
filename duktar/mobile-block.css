@@ -1,0 +1,47 @@
+/* Mobile block — shows below 900px */
+#mobile-block {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: #1c1208;
+  z-index: 999999;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 900px) {
+  #mobile-block {
+    display: flex;
+  }
+}
+
+#mobile-block-inner {
+  max-width: 320px;
+  border: 1px solid #3b2a1a;
+  padding: 36px;
+}
+
+#mobile-block-title {
+  font-family: 'Anthony', 'Courier New', monospace;
+  font-size: 1.4rem;
+  letter-spacing: 0.08em;
+  color: #e8dcc8;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  line-height: 1.2;
+}
+
+#mobile-block-text {
+  font-family: 'ApfelGrotezk', Georgia, serif;
+  font-size: 0.82rem;
+  line-height: 1.8;
+  color: #c9bfad;
+}
+
+#mobile-block-text em {
+  font-style: italic;
+  color: #e8dcc8;
+}
